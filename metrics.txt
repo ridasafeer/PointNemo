@@ -1,0 +1,9 @@
+Input: synth, fs=16000
+Band: 20.0-500.0 Hz, taps=801, L=256, notches=[], zero_phase=False
+Group delay (samples): 400
+Calibrated anti-noise gain: 0.997
+Band power before: -9.93 dB
+Band power after : -46.87 dB
+Delta band power      : -36.95 dB (negative is better)
+RMS original (dBFS): -9.85
+RMS residual (dBFS): -28.02
