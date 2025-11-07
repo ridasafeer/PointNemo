@@ -4,6 +4,9 @@
 #Upsampling/downsampling that might be required
 #Scaling the signal if needed
 
+import numpy as np
+from scipy.io import wavfile
+
 def read_wav_mono(path): # Read a WAV file and convert to mono float32 array
     fs, x = wavfile.read(path) #read .wav file; {fs: sampling rate (samples/sec), x: raw audio samples as an integer NumPy array}
 
