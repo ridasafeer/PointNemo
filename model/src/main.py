@@ -10,7 +10,7 @@ import numpy as np
 from model.src.pn_io.wav import read_wav_mono, write_wav, resample_to
 from model.src.dsp.filters import design_bandpass, bandpass_signal
 from model.src.dsp.utils import ensure_dir, band_power_db, welch_numpy
-from model.output.plots import plot_time, plot_psd, write_metrics_txt
+from model.output.plots import plot_time, plot_psd, write_metrics_txt, plot_comparison, plot_psd_comparison, plot_bandpass_vs_residual
 from model.src.algorithm.scalar import solver_scalar
 from model.src.algorithm.wiener import solver_wiener
 
@@ -110,19 +110,7 @@ def main():
     write_wav(os.path.join(wavdir, 'hvac_anti_noise.wav'), fs, anti_n)
     write_wav(os.path.join(wavdir, 'hvac_residual_after_anc.wav'), fs, y_n)
 
-    # Plots
-    ensure_dir(args.outdir)
-    if args.plots:
-        plot_time(x_n,   fs, 'Original (first 2 s)',    save=os.path.join(args.outdir, '01_original_time.png'))
-        fX, PX = plot_psd(x_n,   fs, 'Original - PSD',  save=os.path.join(args.outdir, '01_original_psd.png'))
-        plot_time(amb_n, fs, 'Band-passed (first 2 s)', save=os.path.join(args.outdir, '02_band_time.png'))
-        plot_psd(amb_n,  fs, 'Band-passed - PSD',       save=os.path.join(args.outdir, '02_band_psd.png'))
-        plot_time(anti_n, fs, 'Anti-noise (first 2 s)', save=os.path.join(args.outdir, '03_anti_time.png'))
-        plot_psd(anti_n,  fs, 'Anti-noise - PSD',       save=os.path.join(args.outdir, '03_anti_psd.png'))
-        plot_time(y_n,    fs, 'Residual (first 2 s)',   save=os.path.join(args.outdir, '04_residual_time.png'))
-        fY, PY = plot_psd(y_n,  fs, 'Residual - PSD',   save=os.path.join(args.outdir, '04_residual_psd.png'))
-
-    # Metrics on RAW (un-normalized) signals
+    # Metrics on RAW (un-normalized) signals - COMPUTE FIRST
     if _HAVE_SCIPY:
         f0, P0 = welch(x,        fs=fs, nperseg=4096)
         f1, P1 = welch(residual, fs=fs, nperseg=4096)
@@ -133,11 +121,33 @@ def main():
     p_before = band_power_db(f0, P0, f_lo, f_hi)
     p_after  = band_power_db(f1, P1, f_lo, f_hi)
 
+    # Plots
+    ensure_dir(args.outdir)
+    if args.plots:
+        plot_time(x_n,   fs, 'Original (first 2 s)',    save=os.path.join(args.outdir, '01_original_time.png'))
+        plot_psd(x_n,    fs, 'Original - PSD',          save=os.path.join(args.outdir, '01_original_psd.png'))
+        plot_time(amb_n, fs, 'Band-passed (first 2 s)', save=os.path.join(args.outdir, '02_band_time.png'))
+        plot_psd(amb_n,  fs, 'Band-passed - PSD',       save=os.path.join(args.outdir, '02_band_psd.png'))
+        plot_time(anti_n, fs, 'Anti-noise (first 2 s)', save=os.path.join(args.outdir, '03_anti_time.png'))
+        plot_psd(anti_n,  fs, 'Anti-noise - PSD',       save=os.path.join(args.outdir, '03_anti_psd.png'))
+        plot_time(y_n,    fs, 'Residual (first 2 s)',   save=os.path.join(args.outdir, '04_residual_time.png'))
+        plot_psd(y_n,    fs, 'Residual - PSD',          save=os.path.join(args.outdir, '04_residual_psd.png'))
+        
+        # ✅ NEW: Bandpass vs Residual overlay
+        plot_bandpass_vs_residual(amb_n, y_n, fs, 'ANC Cancellation: Bandpass vs Residual',
+                                 save=os.path.join(args.outdir, '05_bandpass_vs_residual.png'))
+        
+        # Direct comparison plots
+        plot_comparison(x_n, y_n, fs, 'ANC Effectiveness: Original vs Residual', 
+                       save=os.path.join(args.outdir, '06_comparison_time.png'))
+        plot_psd_comparison(f0, P0, f1, P1, f_lo, f_hi,
+                           save=os.path.join(args.outdir, '07_comparison_psd.png'))
+
     write_metrics_txt(
-    os.path.join(wavdir, 'metrics.txt'),
-    in_name=in_name, fs=fs, f_lo=f_lo, f_hi=f_hi,
-    taps=args.taps, solver=args.solver, stats=stats,
-    p_before=p_before, p_after=p_after
+        os.path.join(wavdir, 'metrics.txt'),
+        in_name=in_name, fs=fs, f_lo=f_lo, f_hi=f_hi,
+        taps=args.taps, solver=args.solver, stats=stats,
+        p_before=p_before, p_after=p_after
     )
 
     print(f"Saved WAVs + metrics.txt. Δ band power = {(p_after - p_before):.2f} dB. Solver={args.solver}.")

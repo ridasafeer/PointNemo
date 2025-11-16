@@ -84,3 +84,100 @@ def write_metrics_txt(filepath, in_name, fs, f_lo, f_hi, taps, solver, stats, p_
         f.write("=" * 60 + "\n")
     
     print(f"Saved: {filepath}")
+
+def plot_comparison(x_orig, y_resid, fs, title, save=None):
+    """Plot original vs residual signals for direct ANC effectiveness comparison."""
+    max_samples = int(2.0 * fs)  # 2 seconds
+    x_plot = x_orig[:max_samples]
+    y_plot = y_resid[:max_samples]
+    t = np.arange(len(x_plot)) / fs
+    
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 8))
+    
+    # Original signal
+    ax1.plot(t, x_plot, linewidth=0.8, color='red', label='Original (Input)')
+    ax1.set_ylabel('Amplitude', fontsize=11)
+    ax1.set_title('Original Signal (Before ANC)', fontsize=12, fontweight='bold')
+    ax1.grid(True, alpha=0.3)
+    ax1.legend(loc='upper right')
+    
+    # Residual signal
+    ax2.plot(t, y_plot, linewidth=0.8, color='green', label='Residual (After ANC)')
+    ax2.set_xlabel('Time (s)', fontsize=11)
+    ax2.set_ylabel('Amplitude', fontsize=11)
+    ax2.set_title('Residual Signal (After ANC)', fontsize=12, fontweight='bold')
+    ax2.grid(True, alpha=0.3)
+    ax2.legend(loc='upper right')
+    
+    # Match y-axis scales for comparison
+    y_lim = max(np.max(np.abs(x_plot)), np.max(np.abs(y_plot))) * 1.1
+    ax1.set_ylim([-y_lim, y_lim])
+    ax2.set_ylim([-y_lim, y_lim])
+    
+    fig.suptitle(title, fontsize=14, fontweight='bold', y=0.995)
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save, dpi=100, bbox_inches='tight')
+        print(f"Saved: {save}")
+    plt.close(fig)
+
+def plot_psd_comparison(f0, P0, f1, P1, f_lo, f_hi, save=None):
+    """Plot PSD comparison showing cancellation in frequency domain."""
+    P0_db = 10 * np.log10(P0 + 1e-12)
+    P1_db = 10 * np.log10(P1 + 1e-12)
+    
+    fig, ax = plt.subplots(figsize=(14, 6))
+    
+    ax.semilogy(f0, P0, linewidth=1.2, label='Original (Before ANC)', color='red', alpha=0.8)
+    ax.semilogy(f1, P1, linewidth=1.2, label='Residual (After ANC)', color='green', alpha=0.8)
+    
+    # Highlight the target band
+    ax.axvspan(f_lo, f_hi, alpha=0.1, color='blue', label=f'Target Band ({f_lo}-{f_hi} Hz)')
+    
+    ax.set_xlabel('Frequency (Hz)', fontsize=11)
+    ax.set_ylabel('Power (V²/Hz)', fontsize=11)
+    ax.set_title('PSD Comparison: ANC Effectiveness', fontsize=12, fontweight='bold')
+    ax.grid(True, which='both', alpha=0.3)
+    ax.set_xlim([0, 500])  # Focus on low frequencies where most energy is
+    ax.legend(loc='upper right', fontsize=10)
+    
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save, dpi=100, bbox_inches='tight')
+        print(f"Saved: {save}")
+    plt.close(fig)
+
+def plot_bandpass_vs_residual(amb, y_resid, fs, title, save=None):
+    """Plot bandpass signal vs residual overlaid for direct cancellation comparison."""
+    max_samples = int(2.0 * fs)  # 2 seconds
+    amb_plot = amb[:max_samples]
+    y_plot = y_resid[:max_samples]
+    t = np.arange(len(amb_plot)) / fs
+    
+    # ✅ Find max across both signals for fair comparison
+    max_amp = max(np.max(np.abs(amb_plot)), np.max(np.abs(y_plot)))
+    y_lim = max_amp * 1.1
+    
+    fig, ax = plt.subplots(figsize=(14, 6))
+    
+    # Plot both signals overlaid
+    ax.plot(t, amb_plot, linewidth=1.0, label='Bandpass Signal (Input to ANC)', 
+            color='blue', alpha=0.7)
+    ax.plot(t, y_plot, linewidth=1.0, label='Residual (After ANC)', 
+            color='green', alpha=0.8)
+    
+    ax.set_xlabel('Time (s)', fontsize=11)
+    ax.set_ylabel('Amplitude', fontsize=11)
+    ax.set_title(title, fontsize=12, fontweight='bold')
+    ax.set_ylim([-y_lim, y_lim])  # ✅ Force same scale
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc='upper right', fontsize=10)
+    
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save, dpi=100, bbox_inches='tight')
+        print(f"Saved: {save}")
+    plt.close(fig)
