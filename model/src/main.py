@@ -10,7 +10,7 @@ import numpy as np
 from model.src.pn_io.wav import read_wav_mono, write_wav, resample_to
 from model.src.dsp.filters import design_bandpass, bandpass_signal
 from model.src.dsp.utils import ensure_dir, band_power_db, welch_numpy
-from model.output.plots import plot_time, plot_psd, write_metrics_txt, plot_comparison, plot_psd_comparison, plot_bandpass_vs_residual
+from model.output.plots import plot_time, plot_psd, write_metrics_txt, plot_comparison, plot_psd_comparison, plot_bandpass_vs_residual, plot_anc_reduction
 from model.src.algorithm.scalar import solver_scalar
 from model.src.algorithm.wiener import solver_wiener
 
@@ -84,15 +84,13 @@ def main():
             calib_sec=args.calib, auto_align=args.auto_align, maxlag_ms=10.0
         )
     else:
-        # ✅ FIXED: Use command-line arguments
         anti, stats = solver_wiener(
             x, ambient, fs, (f_lo, f_hi),
             nfft=4096, hop=None, 
-            reg=args.reg,      # ✅ Use --reg parameter
-            gain=args.gain     # ✅ Use --gain parameter
+            reg=args.reg,     
+            gain=args.gain   
         )
 
-    # Optional extra anti delay
     if args.anc_delay_ms > 0:
         d = int(round(args.anc_delay_ms * 1e-3 * fs))
         anti = np.pad(anti, (d, 0))  # delay by padding at the start
@@ -140,15 +138,16 @@ def main():
         plot_time(y_n,    fs, 'Residual (first 2 s)',   save=os.path.join(args.outdir, '04_residual_time.png'))
         plot_psd(y_n,    fs, 'Residual - PSD',          save=os.path.join(args.outdir, '04_residual_psd.png'))
         
-        # ✅ FIXED: Pass correct arguments (amb_n, y_n, fs)
         plot_bandpass_vs_residual(amb_n, y_n, fs, 'ANC Cancellation: Bandpass vs Residual',
                                   save=os.path.join(args.outdir, '07_bandpass_vs_residual.png'))
         
-        # ✅ NEW: Direct comparison plots (now f0, P0, f1, P1 are defined)
         plot_comparison(x_n, y_n, fs, 'ANC Effectiveness: Original vs Residual', 
                        save=os.path.join(args.outdir, '05_comparison_time.png'))
         plot_psd_comparison(f0, P0, f1, P1, f_lo, f_hi,
                            save=os.path.join(args.outdir, '06_comparison_psd.png'))
+        # ✅ ADD THIS - The dB reduction graph you want
+        plot_anc_reduction(f0, P0, f1, P1, f_lo, f_hi,
+                          save=os.path.join(args.outdir, '08_anc_reduction_db.png'))
 
     write_metrics_txt(
         os.path.join(wavdir, 'metrics.txt'),
