@@ -25,8 +25,19 @@ def solver_wiener(x, ambient, fs, band, nfft=4096, hop=None, reg=1e-4):
     mask = (f >= lo) & (f <= hi)
     Hf = Hf * mask
 
+    print(f"DEBUG: Hf max = {np.max(np.abs(Hf))}, Hf mean = {np.mean(np.abs(Hf))}")
+    print(f"DEBUG: A shape = {A.shape}, Hf shape = {Hf.shape}")
+    print(f"DEBUG: A max = {np.max(np.abs(A))}, A mean = {np.mean(np.abs(A))}")
+
     # Synthesize anti-noise
     Yanti = Hf[:, None] * A
+    print(f"DEBUG: Yanti shape = {Yanti.shape}, Yanti max = {np.max(np.abs(Yanti))}")
+    
     anti = istft_any(Yanti, fs=fs, nfft=nfft, hop=hop)
+    
+    # ✅ Only basic overlap compensation
+    anti = anti / (nfft / hop)
+    
+    print(f"DEBUG: anti shape = {anti.shape}, anti max = {np.max(np.abs(anti))}, anti mean = {np.mean(np.abs(anti))}")
 
     return anti[:len(x)].astype(np.float32), {'H_bins': Hf, 'lag': 0, 'gain': 1.0}
