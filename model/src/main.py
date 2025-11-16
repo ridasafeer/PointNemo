@@ -53,6 +53,10 @@ def main():
     ap.add_argument('--outdir', type=str, default='plots')
     ap.add_argument('--wavdir', type=str, default=os.path.join('model','output_auido'),
                 help='Directory to write WAVs and metrics.txt')
+    ap.add_argument('--reg', type=float, default=1e-5,
+                   help='Regularization (lower=more aggressive). Default 1e-5')
+    ap.add_argument('--gain', type=float, default=1.0,
+                   help='Anti-noise gain scaling (1.0=default, 2.0=double). Default 1.0')
     args = ap.parse_args()
 
     fs = args.fs
@@ -80,9 +84,12 @@ def main():
             calib_sec=args.calib, auto_align=args.auto_align, maxlag_ms=10.0
         )
     else:
+        # ✅ FIXED: Use command-line arguments
         anti, stats = solver_wiener(
             x, ambient, fs, (f_lo, f_hi),
-            nfft=4096, hop=None, reg=1e-4
+            nfft=4096, hop=None, 
+            reg=args.reg,      # ✅ Use --reg parameter
+            gain=args.gain     # ✅ Use --gain parameter
         )
 
     # Optional extra anti delay
@@ -133,15 +140,15 @@ def main():
         plot_time(y_n,    fs, 'Residual (first 2 s)',   save=os.path.join(args.outdir, '04_residual_time.png'))
         plot_psd(y_n,    fs, 'Residual - PSD',          save=os.path.join(args.outdir, '04_residual_psd.png'))
         
-        # ✅ NEW: Bandpass vs Residual overlay
+        # ✅ FIXED: Pass correct arguments (amb_n, y_n, fs)
         plot_bandpass_vs_residual(amb_n, y_n, fs, 'ANC Cancellation: Bandpass vs Residual',
-                                 save=os.path.join(args.outdir, '05_bandpass_vs_residual.png'))
+                                  save=os.path.join(args.outdir, '07_bandpass_vs_residual.png'))
         
-        # Direct comparison plots
+        # ✅ NEW: Direct comparison plots (now f0, P0, f1, P1 are defined)
         plot_comparison(x_n, y_n, fs, 'ANC Effectiveness: Original vs Residual', 
-                       save=os.path.join(args.outdir, '06_comparison_time.png'))
+                       save=os.path.join(args.outdir, '05_comparison_time.png'))
         plot_psd_comparison(f0, P0, f1, P1, f_lo, f_hi,
-                           save=os.path.join(args.outdir, '07_comparison_psd.png'))
+                           save=os.path.join(args.outdir, '06_comparison_psd.png'))
 
     write_metrics_txt(
         os.path.join(wavdir, 'metrics.txt'),

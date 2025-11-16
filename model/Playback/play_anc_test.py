@@ -5,7 +5,8 @@ from pathlib import Path
 import threading
 import time
 
-ROOT = Path(__file__).resolve().parent
+# ✅ FIXED: Go up to project root
+ROOT = Path(__file__).resolve().parent.parent.parent  # Go up 3 levels
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -39,18 +40,21 @@ def play_on_device(audio, fs, device_id, label):
         print(f"  ✗ Error playing {label}: {e}")
 
 def main():
-    wavdir = 'model/output_auido'
+    # ✅ FIXED: Use absolute path from project root
+    wavdir = os.path.join(ROOT, 'model', 'output_auido')
     
     original_file = os.path.join(wavdir, 'hvac_original.wav')
     anti_file = os.path.join(wavdir, 'hvac_anti_noise.wav')
     
+    print(f"Looking for files in: {wavdir}")
+    
     # Check files exist
     if not os.path.exists(original_file):
         print(f"ERROR: {original_file} not found!")
-        sys.exit(1)
+        return
     if not os.path.exists(anti_file):
         print(f"ERROR: {anti_file} not found!")
-        sys.exit(1)
+        return
     
     # Load audio
     print("Loading audio files...")
@@ -59,7 +63,7 @@ def main():
     
     if fs1 != fs2:
         print(f"ERROR: Sample rates don't match! {fs1} vs {fs2}")
-        sys.exit(1)
+        return
     
     fs = fs1
     
@@ -95,7 +99,7 @@ def main():
         headphone_device = int(headphone_device)
     except ValueError:
         print("ERROR: Invalid device IDs!")
-        sys.exit(1)
+        return
     
     print(f"\n{'='*60}")
     print("Starting simultaneous playback...")
