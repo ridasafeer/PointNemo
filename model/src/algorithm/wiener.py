@@ -18,10 +18,15 @@ def solver_wiener(x, ambient, fs, band, nfft=4096, hop=None, reg=1e-5, gain=1.0)
     """
     if hop is None:
         hop = nfft // 2
+    
+    # Store original length for proper trimming later
+    original_len = len(ambient)
 
     # ✅ Compute STFT
-    f, t, A = stft_any(ambient, fs=fs, nfft=nfft, hop=hop)
-    f2, t2, X = stft_any(x, fs=fs, nfft=nfft, hop=hop)
+    f, t, A, backend = stft_any(ambient, fs=fs, nfft=nfft, hop=hop)
+    f2, t2, X, _ = stft_any(x, fs=fs, nfft=nfft, hop=hop)
+    
+    print(f"DEBUG Wiener: backend={backend}, A.shape={A.shape}, A max={np.max(np.abs(A)):.6f}")
 
     # ✅ Cross/auto spectra
     S_xa = np.sum(X * np.conj(A), axis=1)
@@ -37,17 +42,23 @@ def solver_wiener(x, ambient, fs, band, nfft=4096, hop=None, reg=1e-5, gain=1.0)
 
     print(f"DEBUG: reg={reg}, gain={gain}")
     print(f"DEBUG: Hf max = {np.max(np.abs(Hf)):.4f}")
+    print(f"DEBUG: S_xa max = {np.max(np.abs(S_xa)):.6f}, S_aa max = {np.max(np.abs(S_aa)):.6f}")
 
     # ✅ Synthesize anti-noise
     Yanti = Hf[:, None] * A
-    anti = istft_any(Yanti, fs=fs, nfft=nfft, hop=hop)
+    print(f"DEBUG: Yanti max = {np.max(np.abs(Yanti)):.6f}")
+    anti, backend_istft = istft_any(Yanti, fs=fs, nfft=nfft, hop=hop, backend=backend)
+    print(f"DEBUG: anti (before compensation) max = {np.max(np.abs(anti)):.6f}, len={len(anti)}")
     
-    # ✅ Overlap compensation
+    # ✅ Overlap compensation - ALWAYS apply it (scipy istft with boundary=None doesn't do it correctly)
     anti = anti / (nfft / hop)
+    
+    # ✅ Trim to original length (critical!)
+    anti = anti[:original_len]
     
     # ✅ Apply gain (NO CLIPPING!)
     anti = anti * gain
     
-    print(f"DEBUG: anti max = {np.max(np.abs(anti)):.4f}")
+    print(f"DEBUG: anti max = {np.max(np.abs(anti)):.4f}, final len={len(anti)}")
 
     return anti[:len(x)].astype(np.float32), {'H_bins': Hf, 'lag': 0, 'gain': gain}
