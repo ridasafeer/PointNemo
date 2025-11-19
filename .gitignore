@@ -1,0 +1,55 @@
+# === Python (model/) ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.env
+
+# Outputs you asked to ignore
+model/output_plots/
+model/output_audio/
+
+
+model/**/*.tmp
+model/**/*.log
+
+# === C++ build artifacts ===
+/build/
+*.obj
+*.pch
+*.pdb
+*.idb
+*.ilk
+*.dll
+*.lib
+*.exe
+*.exp
+*.iobj
+*.ipdb
+
+# Visual Studio project cruft
+*.user
+*.opendb
+*.VC.db
+*.log
+/.vs/
+.vscode/
+
+# CMake cache (if someone accidentally runs in-source)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+
+# === OS/editor junk ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# === Audio (optional) ===
+# If you want to keep only tiny sample clips in git, uncomment these:
+# *.wav
+# !audio_data/*.wav
