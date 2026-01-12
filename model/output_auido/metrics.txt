@@ -1,0 +1,7 @@
+Input: air-conditioner-running-return-vent-391936.wav, fs=16000
+Band: 20.0-350.0 Hz, taps=601, solver=wiener, zero_phase=True
+Auto lag (samples): 0
+Gain (scalar or avg): 1.000
+Band power before: -30.41 dB
+Band power after : -27.81 dB
+Delta band power : 2.61 dB (negative is better)
