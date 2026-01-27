@@ -7,6 +7,21 @@
 // 1) process audio input from mics both ref and error microphones
 // 2) send processed audio to speaker output
 
+// will go directly to dsp to be used there 
+
 
 #include "audio_processing.h"
+
+
+struct auidoio_interface {
+    // audio input/output parameters
+    int sample_rate;
+    int buffer_size;
+    // Add other necessary members for audio handling
+};
+
+// Initialize audio processing interface
+
+
+
 
