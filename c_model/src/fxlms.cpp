@@ -20,8 +20,7 @@ void FxLMS::push_x(float x){
 float FxLMS::output() const {
 }
 
-float FxLMS::filtered_x_sample() const
-{
+float FxLMS::filtered_x_sample() const {
 
 }
 
@@ -30,7 +29,6 @@ void FxLMS::push_xf(float xf) {
 }
 
 
-void FxLMS::update(float e)
-{
+void FxLMS::update(float e){
 
 }
