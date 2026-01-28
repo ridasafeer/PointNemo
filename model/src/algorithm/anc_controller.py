@@ -16,7 +16,7 @@ class FxLMS:
     """
     def __init__(self, L: int, shat: np.ndarray, mu: float): #required inputs when using module
         self.L = int(L)
-        self.shat = np.asarray(shat, dtype=np.float32)
+        self.shat = np.asarray(shat, dtype=np.float32) #estimated secondary path's impulse response
         self.M = int(self.shat.size)
         self.mu = float(mu)
 
@@ -26,13 +26,16 @@ class FxLMS:
         self.xbuf = np.zeros(xb_len, dtype=np.float32)
         self.xfbuf = np.zeros(self.L, dtype=np.float32)
 
-    def push_x(self, x: float) -> None:
+    #MEASURES REFERENCE SIGNAL x(n)
+    def push_x(self, x: float) -> None: #inserts latest sample from reference signal
         self.xbuf[1:] = self.xbuf[:-1]
-        self.xbuf[0] = x
+        self.xbuf[0] = x #latest sample, at index 0: xbuf[0] = x(n)
 
-    def output(self) -> float:
+    #COMPUTES OUTPUT OF ADAPTIVE FILTER, ANTI-NOISE SIGNAL y(n)
+    def output(self) -> float: 
         # y(n) = sum_{k=0}^{L-1} w[k] * x(n-k)
         return float(np.dot(self.w, self.xbuf[:self.L]))
+
 
     def filtered_x_sample(self) -> float:
         # x_f(n) = sum_{m=0}^{M-1} shat[m] * x(n-m)
@@ -45,3 +48,10 @@ class FxLMS:
     def update(self, e: float) -> None:
         # w <- w + mu * e * xfvec
         self.w += (self.mu * e) * self.xfbuf
+
+# fx.push_x(x)          # update x(n) delay line
+# y = fx.output()       # y(n) = w^T xvec
+# play(y)               # goes through REAL S(z)
+# xf = fx.filtered_x_sample()   # xf(n) = x * Shat
+# fx.push_xf(xf)        # build xf vector
+# fx.update(e)          # w <- w + mu * e * xfvec
