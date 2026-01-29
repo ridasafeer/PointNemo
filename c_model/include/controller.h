@@ -6,10 +6,10 @@
 class Controller {
 public:
     // Constructor: creates FxLMS & DSP objects
-    Controller();
+    Controller(std::vector<float> shat, int L, float mu);
 
     //test for estimated secondary path via prbs
-    void calibration();
+    std::vector<float> calibration();
 
    //Starts learning loop
     void startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength);
@@ -23,11 +23,9 @@ public:
     ~Controller();
 
 private:
-    int L;                  // Adaptive filter length
-    int M;                  // Secondary path length
-    float mu;               // Step size
 
-    DSP* dspObj;
-    FxLMS* fxlmsObj;
+    DSP dspObj;
+    FxLMS fxlmsObj;
+    std::vector<float> shat;
     //calibrate reference
 };
