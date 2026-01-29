@@ -10,7 +10,7 @@
 
 // Add DSP functions here
 // y-> ouput x-> input h->impulse
-void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
+void fir_convolution(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
 {
     y.clear();
     y.resize(x.size(), 0.0);
@@ -20,8 +20,7 @@ void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, co
         for (int j = 0; j < h.size(); ++j) {
             if (i-j >= 0){
                 y[i] = h[j] * x[i-j];
-            }
-            else {
+            } else {
                 y[i] = h[j] * state[(i-j) + (h.size() - 1)];
             }
         }
