@@ -1,6 +1,6 @@
-// main files for DSP functions 
-// most of the DSP code will go here
-
+//Class definition for DSP functions: Utility functions for digital signal processing 
+// - Block processing functions for DSP operations inside FxLMS
+// - DSP utility functions for computations: convolution, simple filtering
 
 #include <vector>
 #include <cmath>
@@ -10,8 +10,6 @@
 #include "dsp.h"
 
 // Add DSP functions here
-
-// e.g., filtering, FFT, convolution, etc.
 
 
 // block processing functions 
