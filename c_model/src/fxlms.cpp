@@ -34,8 +34,3 @@ void FxLMS::push_xf(float xf) {
 void FxLMS::update(float e){
 
 }
-
-
-void FxLMS::updateShat(const std::vector<float>& xbuf) {
-
-}
