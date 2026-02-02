@@ -5,11 +5,9 @@
 
 #include "controller.h"
 
-Controller::Controller(std::vector<float> w, int L, float mu) : dspObj(nullptr), shat(calibration()) {
+Controller::Controller(std::vector<float> w, int L, float mu) : dspObj(), shat(calibration()), fxlmsObj(calibration(), L, mu) {
     // Initialize parameters for the controller class below
     // Before constructing fxlms object, we need to call calibrate() to identify estimated secondary path s_hat
-    shat = calibration(); //output of calibration: shat
-    fxlmsObj = new FxLMS(shat, L, mu);
 
 }
 
@@ -18,7 +16,7 @@ std::vector<float> Controller::calibration() {
     return std::vector<float>();
 }
 
-void Controller::startLearningLoop(const std::vector<float>& x, float* desiredSignal, int signalLength) {
+void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength) {
     //
     
 }

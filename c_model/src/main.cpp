@@ -16,10 +16,9 @@ int main ()
 }
 
 // its for testing in terminal on the pi 
-int argc, char** argv {
-    return 0;
-
-}
+// int main(int argc, char** argv) {
+//     return 0;
+// }
 
 
 

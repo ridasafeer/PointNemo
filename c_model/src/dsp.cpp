@@ -10,6 +10,8 @@
 #include "dsp.h"
 
 // Add DSP functions here
-
+DSP::DSP() : num_taps(0) {
+    // Constructor implementation
+}
 
 // block processing functions 
