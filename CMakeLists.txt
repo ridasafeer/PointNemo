@@ -6,9 +6,9 @@ project(PointNemoRT LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-file(GLOB_RECURSE PN_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE PN_SOURCES "${CMAKE_SOURCE_DIR}/c_model/src/*.cpp")
 # target
 add_executable(pointnemo_rt ${PN_SOURCES})
 
 # headers
-target_include_directories(pointnemo_rt PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(pointnemo_rt PUBLIC ${CMAKE_SOURCE_DIR}/c_model/include)

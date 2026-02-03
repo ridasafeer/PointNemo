@@ -13,7 +13,7 @@
 #include "audio_processing.h"
 
 
-struct auidoio_interface {
+struct io {
     // audio input/output parameters
     int sample_rate;
     int buffer_size;
