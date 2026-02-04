@@ -8,6 +8,8 @@
 
 #include "dsp.h"
 
+#define PI 3.14159265358979323846
+
 // Add DSP functions here
 // y-> ouput x-> input h->impulse
 void fir_convolution(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
@@ -31,4 +33,117 @@ void fir_convolution(std::vector<float>& y, const std::vector<float>& x, const s
         state[i] = x[x.size() - (h.size() - 1) + i];
 }
 
+// function to compute the impulse response "h" based on the sinc function
+void impulseResponseLPF(float Fs, float Fc, unsigned short int num_taps, std::vector<float> &h, int gain)
+{
+    h.clear(); h.resize(num_taps, 0.0);
+    float normCutoff = Fc / (Fs/2);
+
+    for (int i = 0; i < num_taps; i++) {
+
+        if (i == ((num_taps -1) / 2)) {
+            h[i] = normCutoff;
+        } else {
+            h[i] = normCutoff * (sin(PI * normCutoff * (i - (num_taps - 1) / 2))) / (PI * normCutoff*(i - (num_taps - 1)/2));
+        }
+        h[i] = gain * h[i] * pow((sin((i * PI) / num_taps)), 2);
+    }
+}
+
+// convultion with down sampling
+void convolution_w_ds(std::vector<float> &h, std::vector<float> &block, std::vector<float> &state, std::vector<float> &sub_res, int ds) {
+
+	unsigned int k, n;
+
+  static int debug_block = 0;
+
+	sub_res.clear(); sub_res.resize(block.size() / ds, 0.0);
+
+	for (n = 0; n < block.size(); n+=ds) {
+		for (k = 0; k < h.size(); k++) {
+			if (((int) n- (int)k) >= 0) {
+					sub_res[n/ds] += h[k] * block[n-k];
+          if ((debug_block == -1) && (n == 10)) {
+              std::cerr << "normal(" << n/ds << "," << k << "," << n-k << ")" << std::endl;
+          }
+			} else {
+					int index = state.size() + ((int)n - (int)k);
+					sub_res[n/ds] += h[k] * state[index];
+          if ((debug_block == -1) && (n == 10)) {
+            std::cerr << "state(" << n/ds << "," << k << "," << index << ")" << std::endl;
+          }
+			}
+		}
+	}
+
+  state.clear(); state.resize(h.size()-1, 0.0);
+
+  for (int i = 0; i < state.size(); i++) {
+    state[i] = block[i+(block.size()-h.size() + 1)];
+    if (debug_block == -1) {
+      std::cerr << "save(" << i << "," << i+(block.size()-h.size() + 1) << ")" << std::endl;
+    }
+  }
+
+  debug_block += 1;
+}
+
+// band pass filter 
+void bandPassCoeff(float fb, float fc, float fs, int num_taps, std::vector<float> &h) {
+
+    float normCenter = ((fc + fb) / 2) / (fs / 2);
+    float normPass = (fc-fb) / (fs/2);
+
+    for (int i = 0; i < num_taps; i++) {
+	if (i == (num_taps - 1) / 2) {
+	    h[i] = normPass;
+	} else {
+	    h[i]= normPass * (sin(PI*(normPass/2)*(i-(num_taps-1)/2))) / (PI * (normPass/2)*(i-(num_taps-1)/2));
+	}
+	h[i] = h[i] * cos(i * PI * normCenter);
+	h[i] = h[i] * pow(sin((i*PI)/num_taps),2);
+    }
+}
+
+
+// convolution with down and up sampling
+void resampling(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>&state, int ds, int us){
+
+		y.clear(); y.resize(x.size()* us / ds, 0.0);
+    int k, n;
+    int h_size = (int) h.size();
+    int state_size = (int) state.size();
+    int y_size = (int) y.size();
+
+    for (n = 0; n < y_size; n++) {
+
+        for (k = (n*ds) % us; k < h_size; k+=us) {
+
+			int i = (n*ds-k)/us;
+
+             if (i >= 0) {
+                     y[n] += h[k] * x[i];
+
+            }
+             else {
+                int index = state_size + i;
+                y [n] += h[k] * state[index];
+            }
+	        }
+    }
+
+    state.clear(); state.resize(h.size(), 0.0);
+
+    state.assign(x.end() - state.size(), x.end());
+
+}
+
+float dot_product(const std::vector<float>& a, const std::vector<float>& b, int len)
+{
+    float result = 0.0;
+    for (int i = 0; i < len; i++) {
+        result += a[i] * b[i];
+    }
+    return result;
+}
 
