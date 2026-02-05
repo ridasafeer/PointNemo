@@ -57,7 +57,7 @@ int simpleCapture() {
     snd_pcm_uframes_t periodSize = PERIOD; //how large 1 buffer period will be, in number of frames (samples)
     int dir;
     //open stream for recording
-    rc = snd_pcm_open(&handle, "hw:0,0", SND_PCM_STREAM_CAPTURE, 0);
+    rc = snd_pcm_open(&handle, "hw:0,1", SND_PCM_STREAM_CAPTURE, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
 
     //set hardware parameters using all the relevant methods
 
