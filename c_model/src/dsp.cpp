@@ -54,21 +54,22 @@ void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, co
 
 
 // y-> ouput x-> input h->impulse
-void fir_convolution(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, const std::vector<float>& state)
+void fir_convolution(std::vector<float>& y,
+                     const std::vector<float>& x,
+                     const std::vector<float>& h,
+                     const std::vector<float>& state)
 {
-    y.assign(x.size(), 0.0f);
-
     const int M = (int)h.size();
     const int S = M - 1;
 
+    y.resize(x.size(), 0.0f);  // y[i] starts at 0, so we can accumulate into it
+
     for (int i = 0; i < (int)x.size(); ++i) {
-        float acc = 0.0f;
         for (int j = 0; j < M; ++j) {
             int idx = i - j;
-            if (idx >= 0) acc += h[j] * x[idx];
-            else          acc += h[j] * state[idx + S];
+            if (idx >= 0) y[i] += h[j] * x[idx];
+            else          y[i] += h[j] * state[idx + S];
         }
-        y[i] = acc;
     }
 }
 
