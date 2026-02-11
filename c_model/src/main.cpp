@@ -1,6 +1,7 @@
 //
 #include <vector>
 #include <cmath>
+#include "audio_processing.h"
 
 
 int main ()
@@ -10,6 +11,12 @@ int main ()
     //Calibration
 
     //Initialize hardware for audio i/o: speakers and mic set-up, open pcm interfaces
+    AudioIO audioIO = new AudioIO();
+        //call constructor: therefore, completes ahrdware configuration
+        //then, creates all the necessary pcm handles
+
+    //open all interfaces
+    audioIO.openInterfaces();
 
     //initalize learning loop, FxLMS algorithm, etc.
 
@@ -19,6 +26,7 @@ int main ()
     while (1) {
 
         //receive reference mic input x(n) - blocking call until buffer full on audio i/o side
+        audioIO.readReferenceSignal(); //reads 1 period of the buffer, which is number of frames wanted to read
 
         //learning loop iteration
 
