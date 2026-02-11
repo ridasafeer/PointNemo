@@ -28,9 +28,7 @@ TARGET := pointnemo
 
 # -------- testing audio_processing make with main()
 
-#create build dir
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+all: $(TARGET)
 
 $(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/audio_processing.o
 	$(CC) $^ -o $@ $(LDLIBS)
@@ -41,6 +39,10 @@ main.o: src/main.cpp | $(BUILD_DIR)
 
 audio_processing.o: src/audio_processing.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+#create build dir
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 clean:
 	rm -f $(TARGET) $(BUILD_DIR)/*.o
