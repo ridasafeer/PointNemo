@@ -36,9 +36,9 @@ $(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/audio_processing.o
 	$(CC) $^ -o $@ $(LDLIBS)
 
 # compile rule
-main.o: main.cpp | $(BUILD_DIR)
+main.o: src/main.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-audio_processing.o: audio_processing.cpp | $(BUILD_DIR)
+audio_processing.o: src/audio_processing.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
