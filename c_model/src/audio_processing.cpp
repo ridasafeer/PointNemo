@@ -1,27 +1,29 @@
-// hardware audio processing interface
-// add audio processing from mics 
-// tiny alsa or other library to capture audio input and output
-
-// speaker interface 
-
-// 1) process audio input from mics both ref and error microphones
-// 2) send processed audio to speaker output
-
-// will go directly to dsp to be used there 
-
 
 #include "audio_processing.h"
 
-
-struct io {
-    // audio input/output parameters
-    int sample_rate;
-    int buffer_size;
-    // Add other necessary members for audio handling
-};
-
 // Initialize audio processing interface
 
+AudioIO::AudioIO() {
+    //constructor
 
+    self.refMicHandle = *initHardware();
+    self.refMicBuffer = new int[self.refMicHandle.periodSize]; //allocate user-side buffer for ref mic input, size of 1 period
+
+}
+
+pcmHandle_t* AudioIO::initHardware() {
+    //
+    
+}
+
+void AudioIO::receive_audio_input_ref() {
+
+    //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
+    rc = snd_pcm_readi(self.refMicHandle.handle, self.refMicBuffer, self.refMicHandle.periodSize);
+    printf(); //number of frames read
+    //
+
+
+}
 
 
