@@ -1,6 +1,7 @@
 
-#include "audio_processing.h"
+#include "include\audio_processing.h"
 #include "simpleini\SimpleIni.h"
+#include <vector>
 
 // Initialize audio processing interface
 CSimpleIniA ini;
@@ -16,7 +17,7 @@ AudioIO::AudioIO() : {
 //parsing the ini file, outputting a hardwareConfig struct with the configuration
 pcmHandle_t* AudioIO::parseHardwareConfig(char* cfgFilePath) {
 
-    //fill in the hardwareConfig struct with the details from the ini file, using the SimpleIni library
+    //fill in the hardwareConfig str uct with the details from the ini file, using the SimpleIni library
     ini.LoadFile(cfgFilePath);
     int count;
     
@@ -33,7 +34,7 @@ pcmHandle_t* AudioIO::parseHardwareConfig(char* cfgFilePath) {
     }
     hardwareConfig.devices[0] = refMicDevice;
 
-    pcmHandle_t* pcmHandleList = new pcmHandleList[count];
+    std::vector<pcmHandle_t*> pcmHandleList(count);
 
     initHardware(hardwareConfig, pcmHandleList);
 
@@ -41,8 +42,8 @@ pcmHandle_t* AudioIO::parseHardwareConfig(char* cfgFilePath) {
 
 }
 
-//passing the pcmHandleList by reference
-void AudioIO::initHardware(hardwareConfig_t hardwareConfig, pcmHandle_t*& pcmHandleList) {
+//passing the pcmHandleList by reference to modify the real one and have this function as void
+void AudioIO::initHardware(hardwareConfig_t hardwareConfig, std::vector<pcmHandle_t*>& pcmHandleList) {
     //create the pcmHandle structs for each peripheral in the hardware config
     //returns array of pcmHandles, sorted
     //pcm hardware params created
@@ -68,8 +69,7 @@ void AudioIO::initHardware(hardwareConfig_t hardwareConfig, pcmHandle_t*& pcmHan
 }
 
 void AudioIO::readReferenceSignal() {
-    
-    
+
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
     rc = snd_pcm_readi(handles[0], handles[0]->buffer, handles[0]->sParams.period_size);
     printf("%d\n", handles[0]); //number of frames read

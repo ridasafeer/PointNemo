@@ -54,12 +54,12 @@ class AudioIO {
         int closeInterfaces();
 
     private: //just building for ref mic right now
-        pcmHandle_t** handles;
+        std::vector<pcmHandle_t*> handles;
         hardwareConfig_t hardwareConfig;
 
         //hardware configuration should only be within the class, not accessible by the user/outside this interface internally
         //only called within constructor
-        hardwareConfig_t parseHardwareConfig();
-        pcmHandle_t* initHardware();
+        hardwareConfig_t parseHardwareConfig(char* cfgFilePath);
+        pcmHandle_t* initHardware(hardwareConfig_t hardwareConfig, std::vector<pcmHandle_t*>& pcmHandleList);
 
 };

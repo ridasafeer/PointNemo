@@ -13,13 +13,9 @@ int main ()
     //Initialize hardware for audio i/o: speakers and mic set-up, open pcm interfaces
     AudioIO audioIO = new AudioIO();
         //call constructor: therefore, completes ahrdware configuration
-        //then, creates all the necessary pcm handles
-
-    //open all interfaces
-    audioIO.openInterfaces();
+        //then, creates all the necessary pcm handles after opemning all interfaces
 
     //initalize learning loop, FxLMS algorithm, etc.
-
 
     // main loop: CURRENTLY BLOCKING, 1 THREAD
 
