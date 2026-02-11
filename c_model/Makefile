@@ -42,3 +42,5 @@ main.o: src/main.cpp | $(BUILD_DIR)
 audio_processing.o: src/audio_processing.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+clean:
+	rm -f $(TARGET) $(BUILD_DIR)/*.o
