@@ -11,27 +11,68 @@
 #define PI 3.14159265358979323846
 
 // Add DSP functions here
-// y-> ouput x-> input h->impulse
-void fir_convolution(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
-{
-    y.clear();
-    y.resize(x.size(), 0.0);
 
-    //convolution
-    for (int i = 0; i < x.size(); ++i) {
-        for (int j = 0; j < h.size(); ++j) {
-            if (i-j >= 0){
-                y[i] = h[j] * x[i-j];
-            } else {
-                y[i] = h[j] * state[(i-j) + (h.size() - 1)];
-            }
-        }
+
+void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
+{
+    y.resize(x.size(),0.0f);
+
+    if(h.size() == 0 || x.size()==0){
+        state.clear();
+        return;
     }
 
-    // update state: keep last (hsize-1) samples of x
-    for (int i = 0; i < h.size() - 1; ++i)
-        state[i] = x[x.size() - (h.size() - 1) + i];
+
+    //N = block size
+    //M = FIR length
+    //S = state length
+
+    const size_t M = h.size();
+    const size_t S = M - 1;
+
+    if (state.size() != S)
+    {
+        state.assign(S, 0.0f);
+    } 
+    if (x.empty()) return;
+
+    fir_convolution(y, x, h, state);
+
+    // Update state : keep last S samples of (state + x)
+    if (x.size() >= S) {
+        // last S samples are inside x
+        std::copy(x.end() - S, x.end(), state.begin());
+    } else {
+        // need some old state + all of x
+        const size_t N = x.size();
+        std::move(state.begin() + N, state.end(), state.begin());
+        std::copy(x.begin(), x.end(), state.end() - N);
+    }
+    
 }
+
+
+
+// y-> ouput x-> input h->impulse
+void fir_convolution(std::vector<float>& y,
+                     const std::vector<float>& x,
+                     const std::vector<float>& h,
+                     const std::vector<float>& state)
+{
+    const int M = (int)h.size();
+    const int S = M - 1;
+
+    y.resize(x.size(), 0.0f);  // y[i] starts at 0, so we can accumulate into it
+
+    for (int i = 0; i < (int)x.size(); ++i) {
+        for (int j = 0; j < M; ++j) {
+            int idx = i - j;
+            if (idx >= 0) y[i] += h[j] * x[idx];
+            else          y[i] += h[j] * state[idx + S];
+        }
+    }
+}
+
 
 // function to compute the impulse response "h" based on the sinc function
 void impulseResponseLPF(float Fs, float Fc, unsigned short int num_taps, std::vector<float> &h, int gain)
@@ -53,9 +94,8 @@ void impulseResponseLPF(float Fs, float Fc, unsigned short int num_taps, std::ve
 // convultion with down sampling
 void convolution_w_ds(std::vector<float> &h, std::vector<float> &block, std::vector<float> &state, std::vector<float> &sub_res, int ds) {
 
-	unsigned int k, n;
-
-  static int debug_block = 0;
+    unsigned int k, n;
+    static int debug_block = 0;
 
 	sub_res.clear(); sub_res.resize(block.size() / ds, 0.0);
 
@@ -109,7 +149,7 @@ void bandPassCoeff(float fb, float fc, float fs, int num_taps, std::vector<float
 // convolution with down and up sampling
 void resampling(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>&state, int ds, int us){
 
-		y.clear(); y.resize(x.size()* us / ds, 0.0);
+	y.clear(); y.resize(x.size()* us / ds, 0.0);
     int k, n;
     int h_size = (int) h.size();
     int state_size = (int) state.size();
