@@ -31,22 +31,25 @@ std::vector<float> Controller::calibration(
     if (leak < 0.0f || leak >= 1.0f) throw std::invalid_argument("leak must be in 0 to 1 range 0 <= leak < 1");
 
 
-    std::vector<float> shat(L, 0.0f); //fill vector with num of fir coefficients
-    std::vector<float> xhist(L, 0.0f); //vec holding most recent L number of x input excitations, aka hvac noise samples with vector size L. x_hist[0] is newest
+    // Initialize persistent state on first call or if L changed
+    if ((int)cal_shat.size() != L) {
+        cal_shat.assign(L, 0.0f);
+        cal_xhist.assign(L, 0.0f);
+    }
 
     for (int p = 0; p < passes; ++p) {                  // more passes helps system converge
-        std::fill(xhist.begin(), xhist.end(), 0.0f);    // clear input history, and keep h vector across each passes. for each pass h gets better/more accurate
+        std::fill(cal_xhist.begin(), cal_xhist.end(), 0.0f);    // clear input history each pass, keep taps across passes and calls
         for (size_t n = 0; n < x_exc.size(); ++n) {
         
         // shift in new excitation sample. shift old samples “down” one position. Ex: xhist[1] becomes previous xhist[0]
-        for (int i = L - 1; i > 0; --i) xhist[i] = xhist[i - 1];
-        xhist[0] = x_exc[n]; //insert new excitation sample at front
+        for (int i = L - 1; i > 0; --i) cal_xhist[i] = cal_xhist[i - 1];
+        cal_xhist[0] = x_exc[n]; //insert new excitation sample at front
 
         float yhat = 0.0f;
         // model output computed from the current h (fir coeff) at time n (where n = 0 to n = size of x_exc).
 
-        for (int k = 0; k < L; ++k) yhat += shat[k] * xhist[k];     //Computes convolution for this time step, where dot product shat · xhist
-        // yhat(n) = Σ h[k] x(n-k)
+        dspObj.dot_product(cal_shat, cal_xhist, yhat);     //Computes convolution for this time step, where dot product cal_shat * cal_xhist
+        // yhat(n) = h[k] x(n-k)
 
 
         // error
@@ -57,12 +60,12 @@ std::vector<float> Controller::calibration(
         // leakage factor (helps slow drift / keeps taps bounded)
         if (leak > 0.0f) {
             float keep = 1.0f - leak; // how much of the old coefficient value to keep
-            for (int k = 0; k < L; ++k) shat[k] *= keep; //Shrinks coefficients slightly every sample, helps if data is noisy
+            for (int k = 0; k < L; ++k) cal_shat[k] *= keep; //Shrinks coefficients slightly every sample, helps if data is noisy
         }
         
         // update LMS
         float g = mu * e; // step scalar for this sample
-        for (int k = 0; k < L; ++k) shat[k] += g * xhist[k]; 
+        for (int k = 0; k < L; ++k) cal_shat[k] += g * cal_xhist[k]; 
 
         //If error e is positive and xhist[k] is positive, h[k] increases
         // If error e is negative, the update goes the opposite way
@@ -79,12 +82,14 @@ std::vector<float> Controller::calibration(
         */
     }
     }
-    return shat;
+    return cal_shat;
 }
 
 void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength) {
     //
     
 }
+
+Controller::~Controller() {}
     
 

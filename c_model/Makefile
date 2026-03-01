@@ -46,3 +46,16 @@ $(BUILD_DIR):
 
 clean:
 	rm -f $(TARGET) $(BUILD_DIR)/*.o
+
+# -------- test target (no ALSA dependency)
+TEST_SRCS := tests/catch2/catch_amalgamated.cpp \
+             tests/test_dsp.cpp \
+             tests/test_callibration.cpp \
+             src/dsp.cpp \
+             src/controller.cpp \
+             src/fxlms.cpp
+TEST_FLAGS := -std=c++17 -Iinclude -Itests -Wall
+
+test: $(TEST_SRCS) | $(BUILD_DIR)
+	$(CC) $(TEST_FLAGS) $(TEST_SRCS) -o $(BUILD_DIR)/test_runner
+	./$(BUILD_DIR)/test_runner

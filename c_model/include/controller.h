@@ -25,7 +25,9 @@ public:
 private:
 
     DSP dspObj;
-    FxLMS fxlmsObj;
     std::vector<float> shat;
+    FxLMS fxlmsObj;
+    std::vector<float> cal_shat;  // learned secondary path taps
+    std::vector<float> cal_xhist; // input history buffer
     //calibrate reference
 };
