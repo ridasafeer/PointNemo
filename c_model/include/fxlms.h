@@ -30,8 +30,8 @@ private:
     int M;                  // Secondary path length
     float mu;               // Step size
 
-    std::vector<float> w;   // Adaptive filter weights
     const std::vector<float> shat;// Secondary-path estimate
+    std::vector<float> w;   // Adaptive filter weights
     std::vector<float> &x;// Reference signal
     std::vector<float> xf;// Filtered-x
 };
