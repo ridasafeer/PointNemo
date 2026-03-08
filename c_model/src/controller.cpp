@@ -6,9 +6,13 @@
 #include "controller.h"
 #include <stdexcept>
 
-Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu) {
+Controller::Controller(std::vector<float> &x, std::vector<float> &y, std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu), x(x), y(y) {
     // Initialize parameters for the controller class below
     // Before constructing fxlms object, we need to call calibrate() to identify estimated secondary path s_hat
+    //FxLMS and DSP objects already instantiated in the initializer list constructor syntax
+
+    //link the input x to the controller's x
+
 
 }
 
@@ -82,8 +86,50 @@ std::vector<float> Controller::calibration(
     return shat;
 }
 
+void readReferenceSignal() { 
+    //receive the refrence signal new values buffer from the audio_proc
+    std::vector<float> inputBuffer = AudioIO::readReferenceSignal();
+    //add to the reference signal's sliding window via x: sie of lliding window is equal to num_taps
+    //therfore, x should be a circular buffer: the oldest value is overwritten
+    //therfore, input the values into the x buffer of fxlms using circular 
+    for (int i = 0; i < inputBuffer.size(); i++) {
+        //shift each value into the circular buffer, 
+        x[tail] = inputBuffer[i];
+        tail = tail+1 % num_taps;
+    }
+
+}
+
 void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength) {
-    //
+    
+    //Manages the entire control flow of the FxLMS algorithm, links input and output buffers, and identifies termination
+
+    //Mnagement of the batch gradient learning
+    while () {
+        //update the reference signal
+        readReferenceSignal(); //controller is arleady bound to the specific dsp and fxlms instance
+        //compute antinoise
+        fxlmsObj.output();
+
+        //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
+        //Write to the main user anti-noise speaker
+        AudioIO
+
+
+        //PATH 2: LMS update
+
+        //compute the xf filtered signal before the update
+        fxlmsObj.push_xf(); //xf is internal to fxlms obj
+
+        //weight update using the xf
+        fxlmsObj.update();
+
+        //Measure the sound seen by the error mic (right beside the main user speaker)
+        std::vector<float> inputBuffer = AudioIO::readErrorSignal();
+
+
+    }
+    
     
 }
     

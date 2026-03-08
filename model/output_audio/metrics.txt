@@ -1,0 +1,22 @@
+============================================================
+PointNemo ANC Metrics
+============================================================
+
+INPUT
+  File: microwave.wav
+  Sampling Rate: 16000 Hz
+
+FILTERING
+  Band: 20.0 - 2000.0 Hz
+  FIR Taps: 4096
+
+SOLVER
+  Algorithm: wiener
+  Gain: 2.0000
+  Lag (samples): 0
+
+PERFORMANCE
+  Power Before ANC: -17.34 dB
+  Power After ANC:  -43.30 dB
+  Delta Band Power: -25.96 dB
+============================================================

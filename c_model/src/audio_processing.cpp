@@ -57,7 +57,7 @@ void AudioIO::initHardware(hardwareConfig_t hardwareConfig, std::vector<pcmHandl
     nd_pcm_hw_params(&(pcmHandleList[0].handle), &(pcmHandleList[0].params));
     
     // fill with default values
-    snd_pcm_hw_params_any(h&(pcmHandleList[0].handle), &(pcmHandleList[0].params));
+    snd_pcm_hw_params_any(&(pcmHandleList[0].handle), &(pcmHandleList[0].params));
 
     //set period size
     snd_pcm_hw_params_set_period_size_near(&(pcmHandleList[0].handle), &(pcmHandleList[0].params), &periodSize, &dir);
@@ -68,13 +68,29 @@ void AudioIO::initHardware(hardwareConfig_t hardwareConfig, std::vector<pcmHandl
 
 }
 
-void AudioIO::readReferenceSignal() {
+
+std::vector<float> AudioIO::readReferenceSignal() {
 
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
     rc = snd_pcm_readi(handles[0], handles[0]->buffer, handles[0]->sParams.period_size);
-    printf("%d\n", handles[0]); //number of frames read
-    //
+    //printf("%d\n", handles[0]); //first value in frame 
+    //push the values read from the buffer into the reference signal buffer: rewrites
+    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
+        x[i] = handles[0]->buffer[i];
+        printf("%d\n", handles[0]);
+    }
 
+    //
+}
+
+void AudioIO::writeAntinoiseSignal() {
+
+    
+
+}
+
+void AudioIO::closeInterface(pcmHandle_t* handle) {
+    snd_pcm_close(handle->handle);
 }
 
 
