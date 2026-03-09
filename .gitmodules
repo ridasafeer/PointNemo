@@ -1,3 +1,0 @@
-[submodule "c_model/src/c_model/src/simpleini"]
-	path = c_model/src/c_model/src/simpleini
-	url = git@github.com:brofield/simpleini.git
