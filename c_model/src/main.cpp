@@ -9,7 +9,7 @@ int main ()
 {
 
     std::vector<float> shatTest(100, 0.0f);
-    Controller controllerObj = new Controller(shatTest, 100, 0.2);
+    Controller controllerObj(shatTest, 100, 0.2);
 
     // main loop: CURRENTLY BLOCKING, 1 THREAD
 
