@@ -9,7 +9,7 @@ CSimpleIniA::TNamesDepend sections;
 CSimpleIniA::TNamesDepend keys;
 ini.SetUnicode();
 
-AudioIO::AudioIO() : {
+AudioIO::AudioIO() {
     //constructor
 
     //parse hardwareConfig via the iniParser: produces hardwareConfig struct for instance & (2) the handles array in the class
@@ -18,7 +18,7 @@ AudioIO::AudioIO() : {
 }
 
 //parsing the ini file, outputting a hardwareConfig struct with the configuration
-pcmHandle_t* AudioIO::parseHardwareConfig(char* cfgFilePath) {
+void AudioIO::parseHardwareConfig(char* cfgFilePath) {
 
     //fill in the hardwareConfig str uct with the details from the ini file, using the SimpleIni library
     ini.LoadFile(cfgFilePath);
@@ -99,7 +99,7 @@ std::vector<float> AudioIO::readReferenceSignal() {
 
 void AudioIO::writeAntinoiseSignal() {
     
-    
+    return 0;
 
 }
 
