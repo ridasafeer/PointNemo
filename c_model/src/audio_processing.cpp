@@ -97,14 +97,15 @@ std::vector<float> AudioIO::readReferenceSignal() {
     //
 }
 
-void AudioIO::writeAntinoiseSignal() {
+int AudioIO::writeAntinoiseSignal() {
     
     return 0;
 
 }
 
-void AudioIO::closeInterface(pcmHandle_t* handle) {
+int AudioIO::closeInterface(pcmHandle_t* handle) {
     snd_pcm_close(handle->handle);
+    return 0;
 }
 
 

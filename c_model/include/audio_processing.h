@@ -49,9 +49,9 @@ class AudioIO {
 
     public:
         AudioIO();
-        std::vector<float> readReferenceSignal(float* buffer, int size); //blocking: 
+        std::vector<float> readReferenceSignal(); //blocking: 
         //int readErrorSignal(float* buffer, int size);
-        int writeAntinoiseSignal(float* buffer, int size);
+        int writeAntinoiseSignal();
         int closeInterface(pcmHandle_t* handle);
 
     private: //just building for ref mic right now
@@ -62,7 +62,7 @@ class AudioIO {
         //hardware configuration should only be within the class, not accessible by the user/outside this interface internally
         //only called within constructor
         void parseHardwareConfig(char* cfgFilePath);
-        void initHardware(hardwareConfig_t hardwareConfig, std::vector<pcmHandle_t*>& pcmHandleList);
+        void initHardware();
 
         std::vector<float> x; //buffer to hold the reference signal read from the mic, which will be passed to the controller/fxlms class for processing
 
