@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+#pragma once
+
 #define HARDWARECONFIG {2, 1}
 #define HARDWARECONFIGPATH "c_model/src/anc.conf"
 //all other relevant configuration details for each struct is in hardware.conf
@@ -25,7 +27,7 @@ typedef struct {
 
     char** devices; //array of strings (char*) for each hw device in the hardware config
     //error mics and speakers must be paired
-    streamParams sParams;
+    streamParams sParams; //the sParams obj that will be assumed for each handle
 
 } hardwareConfig_t;
 
@@ -35,10 +37,10 @@ typedef struct pcmHandle {
     unsigned int channels;
     snd_pcm_format_t format;
     char device_name[64];
-    snd_pcm_status_t status; //current status of this pcm interface/line
+    snd_pcm_status_t* status; //current status of this pcm interface/line
     //the application-side buffer designateed for this channel
     int* buffer;
-    snd_pcm_hw_params_t params;
+    snd_pcm_hw_params_t* params;
     streamParams sParams;
 
 } pcmHandle_t;

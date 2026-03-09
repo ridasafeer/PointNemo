@@ -30,7 +30,7 @@ TARGET := pointnemo
 
 all: $(TARGET)
 
-$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/audio_processing.o
+$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/audio_processing.o $(BUILD_DIR)/controller.o
 	$(CC) $^ -o $@ $(LDLIBS)
 
 # compile rule
@@ -38,6 +38,9 @@ build/main.o: src/main.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 build/audio_processing.o: src/audio_processing.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/controller.o: src/controller.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 #create build dir

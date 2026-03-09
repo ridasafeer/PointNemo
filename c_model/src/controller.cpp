@@ -6,10 +6,10 @@
 #include "controller.h"
 #include <stdexcept>
 
-Controller::Controller(std::vector<float> &x, std::vector<float> &y, std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu), x(x), y(y) {
+Controller::Controller(std::vector<float> &x, std::vector<float> &y, std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(x), y(y) {
     // Initialize parameters for the controller class below
     // Before constructing fxlms object, we need to call calibrate() to identify estimated secondary path s_hat
-    //FxLMS and DSP objects already instantiated in the initializer list constructor syntax
+    //FxLMS, AudioIO, and DSP objects already instantiated in the initializer list constructor syntax
 
     //link the input x to the controller's x
 
@@ -86,9 +86,9 @@ std::vector<float> Controller::calibration(
     return shat;
 }
 
-void readReferenceSignal() { 
+void pushReferenceSignal() { 
     //receive the refrence signal new values buffer from the audio_proc
-    std::vector<float> inputBuffer = AudioIO::readReferenceSignal();
+    std::vector<float> inputBuffer = audioProcObj.readReferenceSignal();
     //add to the reference signal's sliding window via x: sie of lliding window is equal to num_taps
     //therfore, x should be a circular buffer: the oldest value is overwritten
     //therfore, input the values into the x buffer of fxlms using circular 

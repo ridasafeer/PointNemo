@@ -4,6 +4,8 @@
 #include "estimated_secondary_path.h"
 #include "audio_processing.h"
 
+#pragma once
+
 class Controller {
 public:
     // Constructor: creates FxLMS & DSP objects
@@ -21,13 +23,7 @@ public:
     void steadyStateProcessing(float* referenceSignal, float* desiredSignal, int signalLength);
 
     //functions for interfacing withe audio_proc and the fxlms
-    void readReferenceSignal() {
-
-        //this should all the audio processing function
-        //take the output of that function
-        //add it to the window for the fxlms x instance
-
-    }
+    void pushReferenceSignal();
 
     void writeAntinoiseSignal();
 
@@ -38,6 +34,7 @@ private:
 
     DSP dspObj;
     FxLMS fxlmsObj;
+    AudioIO audioProcObj;
     std::vector<float> &shat;
     std::vector<float> &x;
     std::vector<float> &y;
