@@ -6,7 +6,7 @@
 #pragma once
 
 #define HARDWARECONFIG {2, 1}
-#define HARDWARECONFIGPATH "c_model/src/anc.conf"
+#define HARDWARECONFIGPATH "c_model/src/anc.conf" //const char*
 //all other relevant configuration details for each struct is in hardware.conf
 
 typedef struct {
@@ -61,7 +61,7 @@ class AudioIO {
 
         //hardware configuration should only be within the class, not accessible by the user/outside this interface internally
         //only called within constructor
-        void parseHardwareConfig(char* cfgFilePath);
+        void parseHardwareConfig(const char* cfgFilePath);
         void initHardware();
 
         std::vector<float> x; //buffer to hold the reference signal read from the mic, which will be passed to the controller/fxlms class for processing
