@@ -29,6 +29,8 @@ public:
 
     }
 
+    void writeAntinoiseSignal();
+
     // Destructor: cleans up FxLMS & DSP objects
     ~Controller();
 
@@ -36,7 +38,7 @@ private:
 
     DSP dspObj;
     FxLMS fxlmsObj;
-    std::vector<float> shat;
+    std::vector<float> &shat;
     std::vector<float> &x;
     std::vector<float> &y;
     float errorSignal;

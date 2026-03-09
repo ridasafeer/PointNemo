@@ -100,6 +100,10 @@ void readReferenceSignal() {
 
 }
 
+void writeAntinoiseSignal() {
+    
+}
+
 void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength) {
     
     //Manages the entire control flow of the FxLMS algorithm, links input and output buffers, and identifies termination
@@ -113,8 +117,7 @@ void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal,
 
         //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
         //Write to the main user anti-noise speaker
-        AudioIO
-
+        writeAntinoiseSignal();
 
         //PATH 2: LMS update
 
