@@ -1,6 +1,6 @@
 
 #include "audio_processing.h"
-#include "simpleini\SimpleIni.h"
+#include "SimpleIni.h"
 #include <vector>
 
 // Initialize audio processing interface
