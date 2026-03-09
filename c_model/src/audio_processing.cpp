@@ -39,9 +39,12 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     for (auto& section : sections) {
         char* currentDevice = section.pItem;
         //within the current section, add all devices
+        if (std::string(currentDevice) == "audio") { //skip the first section
+            continue;
+        }
         ini.GetAllKeys(currentDevice, keys);
         for (auto& key : keys) {
-            char* device = key.pItem;
+            const char* device = key.pItem;
             hardwareConfig.devices[count] = ini.GetValue(currentDevice, device);
             //create a new pcmHandle_t struct object for it as well
             pcmHandle_t deviceHandle = new pcmHandle_t;
