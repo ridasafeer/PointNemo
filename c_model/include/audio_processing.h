@@ -36,14 +36,14 @@ typedef struct pcmHandle {
     snd_pcm_stream_t direction; // CAPTURE or PLAYBACK
     unsigned int channels;
     snd_pcm_format_t format;
-    const char device_name[64];
+    const char* device_name;
     snd_pcm_status_t* status; //current status of this pcm interface/line
     //the application-side buffer designateed for this channel
     int* buffer;
     snd_pcm_hw_params_t* params; //the hardware struct actually used by alsa in initHardware
     streamParams sParams; //set inside the parser
 
-    pcmHandle pcmHandle(const char* deviceName) : device_name(deviceName);
+    pcmHandle(const char* deviceName) : device_name(deviceName) {};
 
 } pcmHandle_t;
 
