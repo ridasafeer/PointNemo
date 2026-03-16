@@ -1,6 +1,7 @@
 //Class definition of FXLMS algorithm
 
 #include "fxlms.h"
+#include <stdio.h>
 
 // Constructor
 FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
@@ -35,10 +36,14 @@ void FxLMS::update(float e){
 
 //getters for the bindings of the FxLMS x and y buffers to references inside other classes, when in the constructor initializer list
 
-std::vector<float> FxLMS::getXbuf() {
+std::vector<float>& FxLMS::getXbuf() {
     return x;
 }
 
-std::vector<float> FxLMS::getYbuf() {
+std::vector<float>& FxLMS::getYbuf() {
     return y;
+}
+
+int FxLMS::getNumTaps() {
+    return L;
 }

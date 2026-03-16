@@ -19,9 +19,15 @@ public:
     void push_xf();
 
     // LMS weight update
-    void update(float e);
+    void update();
 
     void updateShat();
+
+    std::vector<float>& getXbuf();
+
+    std::vector<float>& getYbuf();
+
+    int getNumTaps();
 
 private:
     int L;                  // Adaptive filter length

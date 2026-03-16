@@ -52,7 +52,7 @@ class AudioIO {
 
     public:
         AudioIO();
-        void readReferenceSignal(); //blocking: 
+        std::vector<float> readReferenceSignal(); //blocking: 
         //int readErrorSignal(float* buffer, int size);
         int writeAntinoiseSignal();
         int closeInterface(pcmHandle_t* handle);

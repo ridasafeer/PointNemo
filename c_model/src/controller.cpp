@@ -6,7 +6,7 @@
 #include "controller.h"
 #include <stdexcept>
 
-Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXBuf()), y(fxlmsObj.getYbuf()) {
+Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()) {
     // Initialize parameters for the controller class below
     // Before constructing fxlms object, we need to call calibrate() to identify estimated secondary path s_hat
     //FxLMS, AudioIO, and DSP objects already instantiated in the initializer list constructor syntax
@@ -85,9 +85,10 @@ std::vector<float> Controller::calibration(
     return shat;
 }
 
-void pushReferenceSignal() { 
+void Controller::pushReferenceSignal() { 
     //receive the refrence signal new values buffer from the audio_proc
     std::vector<float> inputBuffer = audioProcObj.readReferenceSignal();
+    int num_taps = fxlmsObj.getNumTaps();
     //add to the reference signal's sliding window via x: sie of lliding window is equal to num_taps
     //therfore, x should be a circular buffer: the oldest value is overwritten
     //therfore, input the values into the x buffer of fxlms using circular 
@@ -99,7 +100,7 @@ void pushReferenceSignal() {
 
 }
 
-int writeAntinoiseSignal() {
+int Controller::writeAntinoiseSignal() {
     return 0;
 }
 
@@ -108,9 +109,9 @@ void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal,
     //Manages the entire control flow of the FxLMS algorithm, links input and output buffers, and identifies termination
 
     //Mnagement of the batch gradient learning
-    while () {
+    while (1) {
         //update the reference signal
-        readReferenceSignal(); //controller is arleady bound to the specific dsp and fxlms instance
+        audioProcObj.readReferenceSignal(); //controller is arleady bound to the specific dsp and fxlms instance
         //compute antinoise
         fxlmsObj.output();
 
@@ -127,7 +128,7 @@ void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal,
         fxlmsObj.update();
 
         //Measure the sound seen by the error mic (right beside the main user speaker)
-        int test = AudioIO::readErrorSignal();
+        int test = audioProcObj.readErrorSignal();
 
     }
     

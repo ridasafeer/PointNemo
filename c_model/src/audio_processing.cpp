@@ -102,7 +102,7 @@ void AudioIO::initHardware() {
 
 //Designed for only 1 reference mic signal
 //TODO: how to identify whcih one is refernce mic or which reference mic to read from
-void AudioIO::readReferenceSignal() {
+std::vector<float> AudioIO::readReferenceSignal() {
 
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
     int rc = snd_pcm_readi(handles[0]->handle, handles[0]->buffer, handles[0]->sParams.period_size);
@@ -114,7 +114,7 @@ void AudioIO::readReferenceSignal() {
         printf("%d\n", handles[0]->buffer[i]);
     }
 
-    //
+    return x;
 }
 
 int AudioIO::writeAntinoiseSignal() {
