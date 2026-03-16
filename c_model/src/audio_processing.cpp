@@ -49,7 +49,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             //create a new pcmHandle_t struct object for it as well
             //for this device found under this section, create a new pcmHandle
             const char* device_name = ini.GetValue(currentDevice, device);
-            pcmHandle_t* newDeviceHandle = new pcmHandle_t(device_name); //on the heap, returns ptr
+            pcmHandle_t* newDeviceHandle = new pcmHandle(device_name); //on the heap, returns ptr
             handles.push_back(&deviceHandle);
             handles[count]->sParams = hardwareConfig.sParams;
 
