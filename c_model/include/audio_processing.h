@@ -25,7 +25,7 @@ typedef struct {
     int numRefMics;
     int numErrorMics;
 
-    char** devices; //array of strings (char*) for each hw device in the hardware config
+    const char** devices; //array of strings (char*) for each hw device in the hardware config
     //error mics and speakers must be paired
     streamParams sParams; //the sParams obj that will be assumed for each handle
 
@@ -36,12 +36,12 @@ typedef struct pcmHandle {
     snd_pcm_stream_t direction; // CAPTURE or PLAYBACK
     unsigned int channels;
     snd_pcm_format_t format;
-    char device_name[64];
+    const char device_name[64];
     snd_pcm_status_t* status; //current status of this pcm interface/line
     //the application-side buffer designateed for this channel
     int* buffer;
-    snd_pcm_hw_params_t* params;
-    streamParams sParams;
+    snd_pcm_hw_params_t* params; //the hardware struct actually used by alsa in initHardware
+    streamParams sParams; //set inside the parser
 
 } pcmHandle_t;
 

@@ -23,21 +23,21 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     //fill in the hardwareConfig str uct with the details from the ini file, using the SimpleIni library
     ini.LoadFile(cfgFilePath);
     int count = 0;
-    ini.GetAllSections(sections);
+    ini.GetAllSections(sections); //get all sections
 
     //sParams obj for each handle
     hardwareConfig.sParams.periods =
-        static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "periods", "2")));
+        static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "periods")));
 
     hardwareConfig.sParams.rate =
-        static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "rate", "48000")));
+        static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "rate")));
 
     hardwareConfig.sParams.period_size =
-        static_cast<snd_pcm_uframes_t>(std::stoul(ini.GetValue("audio", "period_size", "256")));
+        static_cast<snd_pcm_uframes_t>(std::stoul(ini.GetValue("audio", "period_size")));
         
-    //For 1 ref mic and 1 speaker
+    //For any config
     for (auto& section : sections) {
-        char* currentDevice = section.pItem;
+        const char* currentDevice = section.pItem;
         //within the current section, add all devices
         if (std::string(currentDevice) == "audio") { //skip the first section
             continue;
@@ -47,10 +47,19 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             const char* device = key.pItem;
             hardwareConfig.devices[count] = ini.GetValue(currentDevice, device);
             //create a new pcmHandle_t struct object for it as well
-            pcmHandle_t deviceHandle = new pcmHandle_t;
+            //for this device found under this section, create a new pcmHandle
+            pcmHandle_t* newDeviceHandle = new pcmHandle_t(); //on the heap, returns ptr
             handles.push_back(&deviceHandle);
             handles[count]->sParams = hardwareConfig.sParams;
             handles[count]->device_name = ini.GetValue(currentDevice, device);
+
+            //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
+            if (currentDevice == "ref_mics" | currentDevice == "error_mics") {
+                handles[count]->direction = SND_PCM_STREAM_CAPTURE;
+            }
+
+            handles[count]->channels = 2; //all are stereo
+            handles[count]->format = SND_PCM_FORMAT_S16_LE; //all used signed 16 bit
             count++;
         }
     }
@@ -63,19 +72,20 @@ void AudioIO::initHardware() {
 
     for (int i = 0; i < hardwareConfig.numDevices; i++) {
 
-        snd_pcm_open(handles[i]->handle, handles[i]->device_name, SND_PCM_STREAM_CAPTURE, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
+        snd_pcm_open(handles[i]->handle, handles[i]->device_name, handles[i]->direction, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
 
-        //set hardware parameters using all the relevant methods
+        streamParams currentHandleStreamParams = handles[i]->sParams;
+        //allocate a default params struct on heap
 
         snd_pcm_hw_params_alloca(handles[i]->params);
 
-        nd_pcm_hw_params(handles[i]->.handle, handles[i]->.params);
+        //set the hardware parameters
         
         // fill with default values
         snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
 
-        //set period size
-        snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &periodSize, &dir);
+        // set period size
+        snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, currentHandleStreamParams.period_size, &dir);
 
         snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
 
@@ -94,6 +104,7 @@ std::vector<float> AudioIO::readReferenceSignal() {
     rc = snd_pcm_readi(handles[0], handles[0]->buffer, handles[0]->sParams.period_size);
     //printf("%d\n", handles[0]); //first value in frame 
     //push the values read from the buffer into the reference signal buffer: rewrites
+    
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
         x[i] = handles[0]->buffer[i];
         printf("%d\n", handles[0]);
