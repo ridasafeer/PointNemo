@@ -32,3 +32,13 @@ void FxLMS::update(float e){
     std::cout << "FxLMS.cpp: update()" << std::endl;
 
 }
+
+//getters for the bindings of the FxLMS x and y buffers to references inside other classes, when in the constructor initializer list
+
+std::vector<float> FxLMS::getXbuf() {
+    return x;
+}
+
+std::vector<float> FxLMS::getYbuf() {
+    return y;
+}
