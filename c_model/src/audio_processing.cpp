@@ -127,3 +127,6 @@ int AudioIO::closeInterface(pcmHandle_t* handle) {
 }
 
 
+int AudioIO::readErrorSignal() {
+    return 0;
+}

@@ -11,8 +11,8 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
 
 void FxLMS::output() const {
     //produce the anti-noise signal y(n), propagate it forward for speaker output (will travel through S(z) physically)
-    y = ; //convolution call
     //Convolution of filter coefficients with reference signal
+    std::cout << "FxLMS.cpp: push_xf()" << std::endl;
 
 }
 
@@ -21,7 +21,7 @@ float FxLMS::filtered_x_sample() const {
 }
 
 void FxLMS::push_xf() {
-
+    std::cout << "FxLMS.cpp: push_xf()" << std::endl;
     //convolve x with the shat
 
 
@@ -29,5 +29,6 @@ void FxLMS::push_xf() {
 
 
 void FxLMS::update(float e){
+    std::cout << "FxLMS.cpp: update()" << std::endl;
 
 }

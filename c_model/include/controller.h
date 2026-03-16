@@ -3,6 +3,7 @@
 #include "dsp.h"
 #include "estimated_secondary_path.h"
 #include "audio_processing.h"
+#include <vector>
 
 #pragma once
 
@@ -17,15 +18,11 @@ public:
    //Starts learning loop
     void startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength);
     //Where FXLMS will be used
-    
-    //Steady state behaviour - after learning, regular functionining of the ANC
-    // Continues processing signals without updating filter coefficients
-    void steadyStateProcessing(float* referenceSignal, float* desiredSignal, int signalLength);
 
     //functions for interfacing withe audio_proc and the fxlms
     void pushReferenceSignal();
 
-    void writeAntinoiseSignal();
+    int writeAntinoiseSignal();
 
     // Destructor: cleans up FxLMS & DSP objects
     ~Controller();

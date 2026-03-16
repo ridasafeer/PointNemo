@@ -1,6 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <stdio.h>
 
 class FxLMS {
 public:

@@ -99,8 +99,8 @@ void pushReferenceSignal() {
 
 }
 
-void writeAntinoiseSignal() {
-    
+int writeAntinoiseSignal() {
+    return 0;
 }
 
 void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength) {
@@ -127,8 +127,7 @@ void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal,
         fxlmsObj.update();
 
         //Measure the sound seen by the error mic (right beside the main user speaker)
-        std::vector<float> inputBuffer = AudioIO::readErrorSignal();
-
+        int test = AudioIO::readErrorSignal();
 
     }
     

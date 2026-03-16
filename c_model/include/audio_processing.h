@@ -56,6 +56,7 @@ class AudioIO {
         //int readErrorSignal(float* buffer, int size);
         int writeAntinoiseSignal();
         int closeInterface(pcmHandle_t* handle);
+        int readErrorSignal();
 
     private: //just building for ref mic right now
         std::vector<pcmHandle_t*> handles;
