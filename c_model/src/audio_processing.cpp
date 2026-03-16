@@ -50,7 +50,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             //for this device found under this section, create a new pcmHandle
             const char* device_name = ini.GetValue(currentDevice, device);
             pcmHandle_t* newDeviceHandle = new pcmHandle(device_name); //on the heap, returns ptr
-            handles.push_back(&deviceHandle);
+            handles.push_back(&newDeviceHandle);
             handles[count]->sParams = hardwareConfig.sParams;
 
             //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
