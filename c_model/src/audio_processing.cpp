@@ -50,7 +50,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             //for this device found under this section, create a new pcmHandle
             const char* device_name = ini.GetValue(currentDevice, device);
             pcmHandle_t* newDeviceHandle = new pcmHandle(device_name); //on the heap, returns ptr
-            handles.push_back(&newDeviceHandle);
+            handles.push_back(newDeviceHandle);
 
             //create the handles application-side buffer: to hold a max of 3 periods
             handles[count]->buffer = new int(); //returns int* pointer, can traverse as array on heap
@@ -86,14 +86,14 @@ void AudioIO::initHardware() {
         //set the hardware parameters
         
         // fill with default values
-        snd_pcm_hw_params_any(&handles[i]->handle, handles[i]->params);
+        snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
 
         // set period size
-        snd_pcm_hw_params_set_period_size_near(&handles[i]->handle, handles[i]->params, currentHandleStreamParams.period_size, &handles[i]->handle.dir);
+        snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
 
-        snd_pcm_hw_params(&handles[i]->handle, handles[i]->params);
+        snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
 
-        snd_pcm_prepare(&handles[i]->handle);
+        snd_pcm_prepare(handles[i]->handle);
 
     }
 
