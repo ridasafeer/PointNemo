@@ -51,6 +51,10 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             const char* device_name = ini.GetValue(currentDevice, device);
             pcmHandle_t* newDeviceHandle = new pcmHandle(device_name); //on the heap, returns ptr
             handles.push_back(&newDeviceHandle);
+
+            //create the handles application-side buffer: to hold a max of 3 periods
+            handles[count]->buffer = new int(); //returns int* pointer, can traverse as array on heap
+
             handles[count]->sParams = hardwareConfig.sParams;
 
             //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
@@ -72,24 +76,24 @@ void AudioIO::initHardware() {
 
     for (int i = 0; i < hardwareConfig.numDevices; i++) {
 
-        snd_pcm_open(handles[i]->handle, handles[i]->device_name, handles[i]->direction, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
+        snd_pcm_open(&handles[i]->handle, handles[i]->device_name, handles[i]->direction, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
 
         streamParams currentHandleStreamParams = handles[i]->sParams;
         //allocate a default params struct on heap
 
-        snd_pcm_hw_params_alloca(handles[i]->params);
+        snd_pcm_hw_params_alloca(&handles[i]->params);
 
         //set the hardware parameters
         
         // fill with default values
-        snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
+        snd_pcm_hw_params_any(&handles[i]->handle, handles[i]->params);
 
         // set period size
-        snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, currentHandleStreamParams.period_size, &dir);
+        snd_pcm_hw_params_set_period_size_near(&handles[i]->handle, handles[i]->params, currentHandleStreamParams.period_size, &handles[i]->handle.dir);
 
-        snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
+        snd_pcm_hw_params(&handles[i]->handle, handles[i]->params);
 
-        snd_pcm_prepare(handles[i]->handle);
+        snd_pcm_prepare(&handles[i]->handle);
 
     }
 
@@ -98,29 +102,27 @@ void AudioIO::initHardware() {
 
 //Designed for only 1 reference mic signal
 //TODO: how to identify whcih one is refernce mic or which reference mic to read from
-std::vector<float> AudioIO::readReferenceSignal() {
+void AudioIO::readReferenceSignal() {
 
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    rc = snd_pcm_readi(handles[0], handles[0]->buffer, handles[0]->sParams.period_size);
+    int rc = snd_pcm_readi(handles[0]->handle, handles[0]->buffer, handles[0]->sParams.period_size);
     //printf("%d\n", handles[0]); //first value in frame 
     //push the values read from the buffer into the reference signal buffer: rewrites
     
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
         x[i] = handles[0]->buffer[i];
-        printf("%d\n", handles[0]);
+        printf("%d\n", handles[0]->buffer[i]);
     }
 
     //
 }
 
 int AudioIO::writeAntinoiseSignal() {
-    
     return 0;
 
 }
 
 int AudioIO::closeInterface(pcmHandle_t* handle) {
-    snd_pcm_close(handle->handle);
     return 0;
 }
 

@@ -14,7 +14,7 @@ typedef struct {
     snd_pcm_format_t format;
     unsigned int rate;
     int periods;
-    int period_size;
+    snd_pcm_uframes_t period_size;
 
 } streamParams;
 
@@ -40,6 +40,7 @@ typedef struct pcmHandle {
     snd_pcm_status_t* status; //current status of this pcm interface/line
     //the application-side buffer designateed for this channel
     int* buffer;
+    int dir;
     snd_pcm_hw_params_t* params; //the hardware struct actually used by alsa in initHardware
     streamParams sParams; //set inside the parser
 
@@ -51,7 +52,7 @@ class AudioIO {
 
     public:
         AudioIO();
-        std::vector<float> readReferenceSignal(); //blocking: 
+        void readReferenceSignal(); //blocking: 
         //int readErrorSignal(float* buffer, int size);
         int writeAntinoiseSignal();
         int closeInterface(pcmHandle_t* handle);
