@@ -48,10 +48,10 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             hardwareConfig.devices[count] = ini.GetValue(currentDevice, device);
             //create a new pcmHandle_t struct object for it as well
             //for this device found under this section, create a new pcmHandle
-            pcmHandle_t* newDeviceHandle = new pcmHandle_t(); //on the heap, returns ptr
+            const char* device_name = ini.GetValue(currentDevice, device);
+            pcmHandle_t* newDeviceHandle = new pcmHandle_t(device_name); //on the heap, returns ptr
             handles.push_back(&deviceHandle);
             handles[count]->sParams = hardwareConfig.sParams;
-            handles[count]->device_name = ini.GetValue(currentDevice, device);
 
             //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
             if (currentDevice == "ref_mics" | currentDevice == "error_mics") {
