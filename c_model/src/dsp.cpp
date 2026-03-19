@@ -13,7 +13,7 @@
 // Add DSP functions here
 
 
-void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
+void DSP::fir_block_processing(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
 {
     y.resize(x.size(),0.0f);
 
@@ -36,7 +36,7 @@ void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, co
     } 
     if (x.empty()) return;
 
-    fir_convolution(y, x, h, state);
+    DSP::fir_convolution(y, x, h, state);
 
     // Update state : keep last S samples of (state + x)
     if (x.size() >= S) {
@@ -54,7 +54,7 @@ void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, co
 
 
 // y-> ouput x-> input h->impulse
-void fir_convolution(std::vector<float>& y,
+void DSP::fir_convolution(std::vector<float>& y,
                      const std::vector<float>& x,
                      const std::vector<float>& h,
                      const std::vector<float>& state)
@@ -75,7 +75,7 @@ void fir_convolution(std::vector<float>& y,
 
 
 // function to compute the impulse response "h" based on the sinc function
-void impulseResponseLPF(float Fs, float Fc, unsigned short int num_taps, std::vector<float> &h, int gain)
+void DSP::impulseResponseLPF(float Fs, float Fc, unsigned short int num_taps, std::vector<float> &h, int gain)
 {
     h.clear(); h.resize(num_taps, 0.0);
     float normCutoff = Fc / (Fs/2);
@@ -92,7 +92,7 @@ void impulseResponseLPF(float Fs, float Fc, unsigned short int num_taps, std::ve
 }
 
 // convultion with down sampling
-void convolution_w_ds(std::vector<float> &h, std::vector<float> &block, std::vector<float> &state, std::vector<float> &sub_res, int ds) {
+void DSP::convolution_w_ds(std::vector<float> &h, std::vector<float> &block, std::vector<float> &state, std::vector<float> &sub_res, int ds) {
 
     unsigned int k, n;
     static int debug_block = 0;
@@ -129,7 +129,7 @@ void convolution_w_ds(std::vector<float> &h, std::vector<float> &block, std::vec
 }
 
 // band pass filter 
-void bandPassCoeff(float fb, float fc, float fs, int num_taps, std::vector<float> &h) {
+void DSP::bandPassCoeff(float fb, float fc, float fs, int num_taps, std::vector<float> &h) {
 
     float normCenter = ((fc + fb) / 2) / (fs / 2);
     float normPass = (fc-fb) / (fs/2);
@@ -147,7 +147,7 @@ void bandPassCoeff(float fb, float fc, float fs, int num_taps, std::vector<float
 
 
 // convolution with down and up sampling
-void resampling(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>&state, int ds, int us){
+void DSP::resampling(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>&state, int ds, int us){
 
 	y.clear(); y.resize(x.size()* us / ds, 0.0);
     int k, n;
@@ -178,7 +178,7 @@ void resampling(std::vector<float>& y, const std::vector<float>& x, const std::v
 
 }
 
-float dot_product(const std::vector<float>& a, const std::vector<float>& b, int len)
+float DSP::dot_product(const std::vector<float>& a, const std::vector<float>& b, int len)
 {
     float result = 0.0;
     for (int i = 0; i < len; i++) {
