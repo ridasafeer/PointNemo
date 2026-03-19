@@ -14,6 +14,7 @@ AudioIO::AudioIO() {
     //parse hardwareConfig via the iniParser: produces hardwareConfig struct for instance & (2) the handles array in the class
     parseHardwareConfig(HARDWARECONFIGPATH);
     initHardware();
+    std::cout << "passed initHardware()" << std::endl; //FAILED: issue is in PARSER
     ini.SetUnicode();
 }
 
