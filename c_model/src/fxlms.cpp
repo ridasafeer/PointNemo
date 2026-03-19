@@ -2,6 +2,7 @@
 
 #include "fxlms.h"
 #include <stdio.h>
+#include <iostream>
 
 // Constructor
 FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
@@ -29,7 +30,7 @@ void FxLMS::push_xf() {
 }
 
 
-void FxLMS::update(float e){
+void FxLMS::update(){
     std::cout << "FxLMS.cpp: update()" << std::endl;
 
 }
