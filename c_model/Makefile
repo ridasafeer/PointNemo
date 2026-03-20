@@ -30,7 +30,7 @@ TARGET := pointnemo
 
 all: $(TARGET)
 
-$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/audio_processing.o $(BUILD_DIR)/controller.o $(BUILD_DIR)/dsp.o
+$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/audio_processing.o $(BUILD_DIR)/controller.o $(BUILD_DIR)/dsp.o $(BUILD_DIR)/fxlms.o
 	$(CC) $^ -o $@ $(LDLIBS)
 
 # compile rule
