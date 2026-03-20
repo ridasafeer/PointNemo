@@ -5,7 +5,7 @@
 
 class DSP {
     public:
-    DSP(); //our custom constructor
+    DSP(int L); //our custom constructor
     void impulseResponseLPF(float, float, unsigned short int, std::vector<float> &, int);
     void fir_block_processing(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state);
     void bandPassCoeff(float, float, float, int, std::vector<float> &);
