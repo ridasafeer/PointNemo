@@ -6,7 +6,7 @@
 #include "controller.h"
 #include <stdexcept>
 
-Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()) {
+Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(L), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()) {
     std::cout << "inside controller constructor" << std::endl;
 }
 
