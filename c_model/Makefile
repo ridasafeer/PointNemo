@@ -46,6 +46,9 @@ build/controller.o: src/controller.cpp | $(BUILD_DIR)
 build/dsp.o: src/dsp.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+build/dsp.o: src/fxlms.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 #create build dir
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
