@@ -3,27 +3,29 @@
 #include "simpleini/SimpleIni.h"
 #include <vector>
 
-// Initialize audio processing interface
-CSimpleIniA ini;
-CSimpleIniA::TNamesDepend sections;
-CSimpleIniA::TNamesDepend keys;
-
 AudioIO::AudioIO() {
     //constructor
 
     //parse hardwareConfig via the iniParser: produces hardwareConfig struct for instance & (2) the handles array in the class
     parseHardwareConfig(HARDWARECONFIGPATH);
     initHardware();
+    std::cout << "" << std::endl;
     ini.SetUnicode();
 }
 
 //parsing the ini file, outputting a hardwareConfig struct with the configuration
 void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
 
+    // Initialize audio processing interface
+    CSimpleIniA ini;
+    CSimpleIniA::TNamesDepend sections;
+    CSimpleIniA::TNamesDepend keys;
     //fill in the hardwareConfig str uct with the details from the ini file, using the SimpleIni library
-    ini.LoadFile(cfgFilePath);
+    ini.LoadFile("c_model/src/anc.conf");
     int count = 0;
     ini.GetAllSections(sections); //get all sections
+
+    std::cout << ini.GetValue("audio", "periods") << std::endl;
 
     //sParams obj for each handle
     hardwareConfig.sParams.periods =
