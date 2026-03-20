@@ -12,7 +12,6 @@
 
 // Add DSP functions here
 
-
 void DSP::fir_block_processing(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)
 {
     y.resize(x.size(),0.0f);
