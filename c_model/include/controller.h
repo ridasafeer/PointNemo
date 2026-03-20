@@ -24,8 +24,6 @@ public:
 
     int writeAntinoiseSignal();
 
-    // Destructor: cleans up FxLMS & DSP objects
-    ~Controller();
 
 private:
 
