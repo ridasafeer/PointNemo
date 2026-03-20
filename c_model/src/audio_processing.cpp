@@ -42,6 +42,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
         if (std::string(currentDevice) == "audio") { //skip the first section
             continue;
         }
+        printf("%s\n", currentDevice);
         ini.GetAllKeys(currentDevice, keys);
         for (auto& key : keys) {
             const char* device = key.pItem;
