@@ -7,8 +7,7 @@
 // Constructor
 FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     : L(L), M(static_cast<int>(shat.size())), mu(mu), shat(shat), w(L, 0.0f), x(*(new std::vector<float>(L, 0.0f))), xf(L, 0.0f) {
-
-
+    std::cout << "FxLMS constructor" << std::endl;
 }
 
 void FxLMS::output() const {

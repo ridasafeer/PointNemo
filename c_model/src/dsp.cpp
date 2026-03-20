@@ -10,6 +10,15 @@
 
 #define PI 3.14159265358979323846
 
+// DSP functions
+
+DSP::DSP(int L) {
+    
+    num_taps = L;
+    std::cout << "DSP constructor" << std::endl;
+
+}
+
 // Add DSP functions here
 
 void DSP::fir_block_processing(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, std::vector<float>& state)

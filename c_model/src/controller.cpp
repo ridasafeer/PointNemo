@@ -7,12 +7,7 @@
 #include <stdexcept>
 
 Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()) {
-    // Initialize parameters for the controller class below
-    // Before constructing fxlms object, we need to call calibrate() to identify estimated secondary path s_hat
-    //FxLMS, AudioIO, and DSP objects already instantiated in the initializer list constructor syntax
-
-    //link the input x to the controller's x
-
+    std::cout << "inside controller constructor" << std::endl;
 }
 
 std::vector<float> Controller::calibration(
