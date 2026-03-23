@@ -143,6 +143,7 @@ void AudioIO::initHardware() {
 std::vector<float> AudioIO::readReferenceSignal() {
 
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
+    std::cout << handles[0]->device_name << std::endl;
     int rc = snd_pcm_readi(handles[0]->handle, handles[0]->buffer, handles[0]->sParams.period_size);
     //printf("%d\n", handles[0]); //first value in frame 
     //push the values read from the buffer into the reference signal buffer: rewrites
