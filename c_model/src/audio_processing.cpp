@@ -2,12 +2,12 @@
 #include "audio_processing.h"
 #include "simpleini/SimpleIni.h"
 #include <vector>
+#include <string>
 
 CSimpleIniA ini;
 
 AudioIO::AudioIO() {
     //constructor
-
     //parse hardwareConfig via the iniParser: produces hardwareConfig struct for instance & (2) the handles array in the class
     parseHardwareConfig(HARDWARECONFIGPATH);
     initHardware();
@@ -25,12 +25,12 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     ini.LoadFile("c_model/src/anc.conf");
     int count = 0;
     ini.GetAllSections(sections); //get all sections
+    const char* test = ini.GetValue("audio", "periods", "Hello: getVal failed"); //error: returning nullptr
 
-    printf(ini.GetValue("audio", "periods"));
+    std::cout << test << std::endl;
 
-    // //sParams obj for each handle
-    // hardwareConfig.sParams.periods =
-    //     static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "periods")));
+    //sParams obj for each handle
+    //hardwareConfig.sParams.periods = (int)ini.GetValue("audio", "periods");
 
     // hardwareConfig.sParams.rate =
     //     static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "rate")));

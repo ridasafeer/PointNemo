@@ -13,9 +13,11 @@ int main ()
     Controller controllerObj(shatTest, 100, 0.2);
 
     // main loop: CURRENTLY BLOCKING, 1 THREAD
+    std::cout << "main: loop start" << std::endl;
 
     while (1) {
 
+        std::cout << "main: loop" << std::endl;
         controllerObj.pushReferenceSignal();
         std::cout << "Controller: pushReferenceSignal()" << std::endl;
 
