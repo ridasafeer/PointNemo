@@ -83,15 +83,15 @@ std::vector<float> Controller::calibration(
 void Controller::pushReferenceSignal() { 
     //receive the refrence signal new values buffer from the audio_proc
     std::vector<float> inputBuffer = audioProcObj.readReferenceSignal();
-    int num_taps = fxlmsObj.getNumTaps();
-    //add to the reference signal's sliding window via x: sie of lliding window is equal to num_taps
-    //therfore, x should be a circular buffer: the oldest value is overwritten
-    //therfore, input the values into the x buffer of fxlms using circular 
-    for (int i = 0; i < inputBuffer.size(); i++) {
-        //shift each value into the circular buffer, 
-        x[tail] = inputBuffer[i];
-        tail = tail+1 % num_taps;
-    }
+    // int num_taps = fxlmsObj.getNumTaps();
+    // //add to the reference signal's sliding window via x: sie of lliding window is equal to num_taps
+    // //therfore, x should be a circular buffer: the oldest value is overwritten
+    // //therfore, input the values into the x buffer of fxlms using circular 
+    // for (int i = 0; i < inputBuffer.size(); i++) {
+    //     //shift each value into the circular buffer, 
+    //     x[tail] = inputBuffer[i];
+    //     tail = tail+1 % num_taps;
+    // }
 
 }
 

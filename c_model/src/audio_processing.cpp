@@ -86,7 +86,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             handles[count]->sParams = hardwareConfig.sParams;
 
             //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
-            if (currentDevice == "ref_mics" | currentDevice == "error_mics") {
+            if (currentDevice == "reference_mics" | currentDevice == "error_mics") {
                 handles[count]->direction = SND_PCM_STREAM_CAPTURE;
             } else {
                 handles[count]->direction = SND_PCM_STREAM_PLAYBACK;
@@ -107,17 +107,22 @@ void AudioIO::initHardware() {
 
     for (int i = 0; i < hardwareConfig.numDevices; i++) {
 
+        std::cout << i << std::endl;
         snd_pcm_open(&handles[i]->handle, handles[i]->device_name, handles[i]->direction, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
+
+        std::cout << "alsa open()" << std::endl;
 
         streamParams currentHandleStreamParams = handles[i]->sParams;
         //allocate a default params struct on heap
 
         snd_pcm_hw_params_alloca(&handles[i]->params);
+        std::cout << "alsa alloca()" << std::endl;
 
         //set the hardware parameters
         
         // fill with default values
         snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
+        std::cout << "alsa default params()" << std::endl;
 
         // set period size
         snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
@@ -125,6 +130,8 @@ void AudioIO::initHardware() {
         snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
 
         snd_pcm_prepare(handles[i]->handle);
+
+        std::cout << "all device pcm interfaces init'd" << std::endl;
 
     }
 
