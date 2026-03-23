@@ -6,7 +6,7 @@
 #pragma once
 
 #define HARDWARECONFIG {2, 1}
-#define HARDWARECONFIGPATH "c_model/src/anc.ini" //const char*
+#define HARDWARECONFIGPATH "anc.ini" //const char*
 //all other relevant configuration details for each struct is in hardware.conf
 
 typedef struct {

@@ -1,5 +1,5 @@
 CC := g++
-CFLAGS := -Wall -Wextra -std=c++17 -Iinclude -I./src/src/simpleini $(shell pkg-config --cflags alsa) 
+CFLAGS := -Wall -Wextra -std=c++17 -Iinclude -I./src/simpleini $(shell pkg-config --cflags alsa) 
 LDLIBS = $(shell pkg-config --libs alsa) #can also use
  
 SRC_DIR := src

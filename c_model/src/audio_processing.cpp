@@ -9,7 +9,7 @@ CSimpleIniA ini;
 AudioIO::AudioIO() {
     //constructor
     //parse hardwareConfig via the iniParser: produces hardwareConfig struct for instance & (2) the handles array in the class
-    parseHardwareConfig(HARDWARECONFIGPATH);
+    parseHardwareConfig("anc.ini");
     initHardware();
     std::cout << "passed initHardware()" << std::endl; //FAILED: issue is in PARSER
     ini.SetUnicode();
@@ -22,7 +22,10 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     CSimpleIniA::TNamesDepend sections;
     CSimpleIniA::TNamesDepend keys;
     //fill in the hardwareConfig str uct with the details from the ini file, using the SimpleIni library
-    ini.LoadFile("c_model/src/anc.conf");
+    SI_Error rc = ini.LoadFile("anc.ini");
+    // if (rc < 0) {
+    //     std::cout << rc << std::endl;
+    // }
     int count = 0;
     ini.GetAllSections(sections); //get all sections
     const char* test = ini.GetValue("audio", "periods", "Hello: getVal failed"); //error: returning nullptr
