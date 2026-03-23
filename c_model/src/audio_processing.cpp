@@ -1,8 +1,9 @@
-
 #include "audio_processing.h"
 #include "simpleini/SimpleIni.h"
 #include <vector>
 #include <string>
+
+#define SI_CONVERT_GENERIC
 
 CSimpleIniA ini;
 
@@ -29,53 +30,76 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     int count = 0;
     ini.GetAllSections(sections); //get all sections
     const char* test = ini.GetValue("audio", "periods", "Hello: getVal failed"); //error: returning nullptr
-
     std::cout << test << std::endl;
 
     //sParams obj for each handle
-    //hardwareConfig.sParams.periods = (int)ini.GetValue("audio", "periods");
+    hardwareConfig.sParams.periods = static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "periods")));
 
-    // hardwareConfig.sParams.rate =
-    //     static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "rate")));
+    hardwareConfig.sParams.rate =
+        static_cast<unsigned int>(std::stoi(ini.GetValue("audio", "rate")));
 
-    // hardwareConfig.sParams.period_size =
-    //     static_cast<snd_pcm_uframes_t>(std::stoul(ini.GetValue("audio", "period_size")));
+    hardwareConfig.sParams.period_size =
+        static_cast<snd_pcm_uframes_t>(std::stoul(ini.GetValue("audio", "period_size")));
+
+    std::cout << hardwareConfig.sParams.periods << std::endl;
+    std::cout << hardwareConfig.sParams.period_size << std::endl;
+    std::cout << hardwareConfig.sParams.rate << std::endl;
         
-    // //For any config
-    // for (auto& section : sections) {
-    //     const char* currentDevice = section.pItem;
-    //     //within the current section, add all devices
-    //     if (std::string(currentDevice) == "audio") { //skip the first section
-    //         continue;
-    //     }
-    //     printf("%s\n", currentDevice);
-    //     ini.GetAllKeys(currentDevice, keys);
-    //     for (auto& key : keys) {
-    //         const char* device = key.pItem;
-    //         hardwareConfig.devices[count] = ini.GetValue(currentDevice, device);
-    //         //create a new pcmHandle_t struct object for it as well
-    //         //for this device found under this section, create a new pcmHandle
-    //         const char* device_name = ini.GetValue(currentDevice, device);
-    //         pcmHandle_t* newDeviceHandle = new pcmHandle(device_name); //on the heap, returns ptr
-    //         handles.push_back(newDeviceHandle);
+    //For any config
+    for (auto& section : sections) {
+        const char* currentDevice = section.pItem;
+        printf("%s\n", currentDevice);
+        //within the current section, add all devices
+        if (std::string(currentDevice) == "audio") { //skip the first section
+            continue;
+        }
+        bool rc = ini.GetAllKeys(currentDevice, keys);
+        // if (!rc) {
+        //     std::cout << "Error: Section not found" << std::endl;
+        // }
+        hardwareConfig.devices = new const char*[10]; //10 const char* ptrs, therefore 3 ptrs to char ptrs
 
-    //         //create the handles application-side buffer: to hold a max of 3 periods
-    //         handles[count]->buffer = new int(); //returns int* pointer, can traverse as array on heap
+        for (auto& key : keys) {
+            printf("%s\n", key.pItem);
+            const char* device = ini.GetValue(currentDevice, key.pItem);
+            printf("%s\n", device);
+            printf("%d\n", count);
+            
+            size_t len = std::strlen(device);
 
-    //         handles[count]->sParams = hardwareConfig.sParams;
+            //best method
+            char* buf = new char[len + 1]; //ptr to buffer on the heap, temp variable to get the ptr to heap
+            std::strcpy(buf, device); //str copy pretty much only way to init this string on the heap with a string that already exists
+            hardwareConfig.devices[count] = buf;
+            //create a new pcmHandle_t struct object for it as well
+            //for this device found under this section, create a new pcmHandle
+            pcmHandle_t* newDeviceHandle = new pcmHandle(hardwareConfig.devices[count]); //on the heap, returns ptr
+            std::cout << "new pcmHandle_t ptr made and added to handles[]" << std::endl;
+            
+            handles.push_back(newDeviceHandle); //also creates an index here, avoids seg fault
 
-    //         //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
-    //         if (currentDevice == "ref_mics" | currentDevice == "error_mics") {
-    //             handles[count]->direction = SND_PCM_STREAM_CAPTURE;
-    //         }
+            std::cout << "new pcmHandle_t newDeviceHandle appended to handles[]" << std::endl;
 
-    //         handles[count]->channels = 2; //all are stereo
-    //         handles[count]->format = SND_PCM_FORMAT_S16_LE; //all used signed 16 bit
-    //         count++;
-    //     }
-    // }
+            //create the handles application-side buffer: to hold a max of 3 periods
+            handles[count]->buffer = new int(); //returns int* pointer, can traverse as array on heap
 
-    // hardwareConfig.numDevices = count;
+            handles[count]->sParams = hardwareConfig.sParams;
+
+            //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
+            if (currentDevice == "ref_mics" | currentDevice == "error_mics") {
+                handles[count]->direction = SND_PCM_STREAM_CAPTURE;
+            } else {
+                handles[count]->direction = SND_PCM_STREAM_PLAYBACK;
+            }
+
+            handles[count]->channels = 2; //all are stereo
+            handles[count]->format = SND_PCM_FORMAT_S16_LE; //all used signed 16 bit
+            count++;
+        }
+    }
+
+    std::cout << "all device pcm interfaces created, parsing complete" << std::endl;
+    hardwareConfig.numDevices = count;
 }
 
 //passing the pcmHandleList by reference to modify the real one and have this function as void

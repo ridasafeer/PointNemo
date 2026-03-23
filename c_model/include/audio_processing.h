@@ -42,9 +42,11 @@ typedef struct pcmHandle {
     int* buffer;
     int dir;
     snd_pcm_hw_params_t* params; //the hardware struct actually used by alsa in initHardware
-    streamParams sParams; //set inside the parser
+    streamParams sParams; //set inside the parser. TODO: Remove, not needed anymore
 
-    pcmHandle(const char* deviceName) : device_name(deviceName) {};
+    pcmHandle(const char* deviceName) : device_name(deviceName) {
+        std::cout << "pcmHandle_t constructor" << std::endl;
+    }
 
 } pcmHandle_t;
 
