@@ -53,5 +53,10 @@ build/fxlms.o: src/fxlms.cpp | $(BUILD_DIR)
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
+run: pointnemo
+	sudo modprobe snd-aloop || true
+	arecord -D hw:Loopback,0 -f cd gc.wav &
+	./pointnemo
+
 clean:
 	rm -f $(TARGET) $(BUILD_DIR)/*.o
