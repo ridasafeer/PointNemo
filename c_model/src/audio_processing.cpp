@@ -81,7 +81,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             std::cout << "new pcmHandle_t newDeviceHandle appended to handles[]" << std::endl;
 
             //create the handles application-side buffer: to hold a max of 3 periods
-            handles[count]->buffer = new int(); //returns int* pointer, can traverse as array on heap
+            handles[count]->buffer = new int[25000]; //returns int* pointer, can traverse as array on heap
 
             handles[count]->sParams = hardwareConfig.sParams;
 
@@ -147,7 +147,8 @@ std::vector<float> AudioIO::readReferenceSignal() {
     int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size);
     printf("%d\n", handles[0]->buffer[0]); //first value in frame 
     //push the values read from the buffer into the reference signal buffer: rewrites
-    std::cout << rc << std::endl;
+    std::cout << snd_strerror(rc) << std::endl;
+    //we should only be allowed to read reference signal if the application buffer is full?
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
         x[i] = handles[0]->buffer[i];
         printf("%d\n", handles[0]->buffer[i]);
