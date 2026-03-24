@@ -55,7 +55,8 @@ $(BUILD_DIR):
 
 run: pointnemo
 	sudo modprobe snd-aloop || true
-	arecord -D hw:Loopback,0 -f cd gc.wav &
+	arecord -D hw:1,1 -f cd micOutput.wav &
+	aplay -D hw:1,0 voice.wav &
 	./pointnemo
 
 clean:
