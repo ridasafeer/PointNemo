@@ -10,7 +10,7 @@ CSimpleIniA ini;
 AudioIO::AudioIO() {
     //constructor
     //parse hardwareConfig via the iniParser: produces hardwareConfig struct for instance & (2) the handles array in the class
-    parseHardwareConfig("anc.ini");
+    parseHardwareConfig(HARDWARECONFIGPATH);
     initHardware();
     std::cout << "passed initHardware()" << std::endl; //FAILED: issue is in PARSER
     ini.SetUnicode();
@@ -23,7 +23,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     CSimpleIniA::TNamesDepend sections;
     CSimpleIniA::TNamesDepend keys;
     //fill in the hardwareConfig str uct with the details from the ini file, using the SimpleIni library
-    SI_Error rc = ini.LoadFile("anc.ini");
+    SI_Error rc = ini.LoadFile(cfgFilePath);
     // if (rc < 0) {
     //     std::cout << rc << std::endl;
     // }
@@ -113,21 +113,42 @@ void AudioIO::initHardware() {
         std::cout << "alsa open()" << std::endl;
 
         streamParams currentHandleStreamParams = handles[i]->sParams;
+        
         //allocate a default params struct on heap
-
         snd_pcm_hw_params_alloca(&handles[i]->params);
         std::cout << "alsa alloca()" << std::endl;
 
         //set the hardware parameters
-        
+
         // fill with default values
         snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
         std::cout << "alsa default params()" << std::endl;
+
+        //set mono
+        snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, 1);
 
         // set period size
         snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
 
         snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
+
+        //debug: what the pcm params are for this file at the end of this function
+        snd_pcm_uframes_t frames;
+        unsigned int val;
+        snd_pcm_hw_params_get_format(handles[i]->params, (snd_pcm_format_t*)&val);
+        printf("%d : format\n", val);
+
+        snd_pcm_hw_params_get_channels(handles[i]->params, &val);
+        printf("%d : num channels\n", val);
+
+        snd_pcm_hw_params_get_period_size(handles[i]->params, &frames, &handles[i]->dir);
+        printf("%d : num frames\n", frames);
+
+        snd_pcm_hw_params_get_periods(handles[i]->params, &val, &handles[i]->dir);
+        printf("%d frames : periods per buffer\n", val);
+        
+        snd_pcm_hw_params_get_rate(handles[i]->params, &val, &handles[i]->dir);
+        printf("%d : sampling rate\n", val);
 
         snd_pcm_prepare(handles[i]->handle);
 
