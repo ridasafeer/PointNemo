@@ -57,7 +57,6 @@ $(BUILD_DIR):
 #automates a loopback test with the voice.wav, outtputing to the micOutput.wav
 run: pointnemo
 	sudo modprobe snd-aloop || true
-	arecord -D hw:1,1 -f S16_LE -r 48000 -c 1 micOutput.wav &
 	aplay -D hw:1,0 voice.wav &
 	./pointnemo
 

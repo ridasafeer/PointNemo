@@ -57,7 +57,8 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
         // if (!rc) {
         //     std::cout << "Error: Section not found" << std::endl;
         // }
-        hardwareConfig.devices = new const char*[10]; //10 const char* ptrs, therefore 3 ptrs to char ptrs
+        int bufSize = hardwareConfig.sParams.periods * hardwareConfig.sParams.period_size;
+        hardwareConfig.devices = new const char*[bufSize]; //10 const char* ptrs, therefore 3 ptrs to char ptrs
 
         for (auto& key : keys) {
             printf("%s\n", key.pItem);
@@ -81,7 +82,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             std::cout << "new pcmHandle_t newDeviceHandle appended to handles[]" << std::endl;
 
             //create the handles application-side buffer: to hold a max of 3 periods
-            handles[count]->buffer = new int[25000]; //returns int* pointer, can traverse as array on heap
+            handles[count]->buffer = new char[16]; //returns int* pointer, can traverse as array on heap
 
             handles[count]->sParams = hardwareConfig.sParams;
 
@@ -150,6 +151,9 @@ void AudioIO::initHardware() {
         snd_pcm_hw_params_get_rate(handles[i]->params, &val, &handles[i]->dir);
         printf("%d : sampling rate\n", val);
 
+        snd_pcm_hw_params_get_access(handles[i]->params, (snd_pcm_access_t*)&val);
+        printf("%d : interleaved or nah\n", val); //0 = interleaved
+
         snd_pcm_prepare(handles[i]->handle);
 
         std::cout << "all device pcm interfaces init'd" << std::endl;
@@ -164,15 +168,14 @@ void AudioIO::initHardware() {
 std::vector<float> AudioIO::readReferenceSignal() {
 
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << handles[0]->device_name << std::endl;
-    int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size);
-    printf("%d\n", handles[0]->buffer[0]); //first value in frame 
+    std::cout << "AudioIO::readRefSignal()" << handles[0]->device_name << std::endl;
+    int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
     //push the values read from the buffer into the reference signal buffer: rewrites
     std::cout << snd_strerror(rc) << std::endl;
-    //we should only be allowed to read reference signal if the application buffer is full?
+    // //we should only be allowed to read reference signal if the application buffer is full?
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        x[i] = handles[0]->buffer[i];
-        printf("%d\n", handles[0]->buffer[i]);
+        x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
+        printf("%x\t", handles[0]->buffer[i]);
     }
 
     return x;

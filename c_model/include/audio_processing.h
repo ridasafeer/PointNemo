@@ -39,7 +39,7 @@ typedef struct pcmHandle {
     const char* device_name;
     snd_pcm_status_t* status; //current status of this pcm interface/line
     //the application-side buffer designateed for this channel
-    int* buffer;
+    char* buffer;
     int dir;
     snd_pcm_hw_params_t* params; //the hardware struct actually used by alsa in initHardware
     streamParams sParams; //set inside the parser. TODO: Remove, not needed anymore

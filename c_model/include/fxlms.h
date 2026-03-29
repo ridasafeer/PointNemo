@@ -10,7 +10,7 @@ public:
     FxLMS(const std::vector<float>& shat, int L, float mu);
 
     // Compute controller output y(n)
-    void output() const;
+    void output(int startIndex) const;
 
     // Compute filtered-x sample x_f(n) using x from this class (NOT ISR x)
     float filtered_x_sample() const;
@@ -30,7 +30,7 @@ public:
     int getNumTaps();
 
 private:
-    int L;                  // Adaptive filter length
+    int L;                  // Number of Taps (Adaptive filter length)
     int M;                  // Secondary path length
     float mu;               // Step size
 

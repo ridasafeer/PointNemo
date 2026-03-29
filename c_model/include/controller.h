@@ -35,8 +35,7 @@ private:
     std::vector<float> &y;
     float errorSignal;
     
-    int head = 0; //oldest
-    int tail = 0;
+    int tail = 0; //current sample in system time, x(n = t) sample
     //calibrate reference
 
 };

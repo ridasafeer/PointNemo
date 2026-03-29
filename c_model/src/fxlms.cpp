@@ -14,6 +14,7 @@ void FxLMS::output() const {
     //produce the anti-noise signal y(n), propagate it forward for speaker output (will travel through S(z) physically)
     //Convolution of filter coefficients with reference signal
     std::cout << "FxLMS.cpp: push_xf()" << std::endl;
+    //sliding window logic 2: on the reading for computing each convolution product side
 
 }
 

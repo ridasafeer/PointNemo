@@ -83,15 +83,16 @@ std::vector<float> Controller::calibration(
 void Controller::pushReferenceSignal() { 
     //receive the refrence signal new values buffer from the audio_proc
     std::vector<float> inputBuffer = audioProcObj.readReferenceSignal();
-    // int num_taps = fxlmsObj.getNumTaps();
-    // //add to the reference signal's sliding window via x: sie of lliding window is equal to num_taps
-    // //therfore, x should be a circular buffer: the oldest value is overwritten
-    // //therfore, input the values into the x buffer of fxlms using circular 
-    // for (int i = 0; i < inputBuffer.size(); i++) {
-    //     //shift each value into the circular buffer, 
-    //     x[tail] = inputBuffer[i];
-    //     tail = tail+1 % num_taps;
-    // }
+    int num_taps = fxlmsObj.getNumTaps();
+    //sliding window logic 1: on the pushing into the buffer side
+        //num_taps: size of the window, matching the size of the filter impulse response
+        //audio buffer size: alll the new samples to place in window
+
+    for (int i = 0; i < inputBuffer.size(); i++) {
+        //shift each value into the circular buffer, 
+        tail = tail+1 % num_taps; //move tail to sample's new slot
+        x[tail] = inputBuffer[i];
+    }
 
 }
 
@@ -108,7 +109,7 @@ void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal,
         //update the reference signal
         audioProcObj.readReferenceSignal(); //controller is arleady bound to the specific dsp and fxlms instance
         //compute antinoise
-        fxlmsObj.output();
+        fxlmsObj.output(tail);
 
         //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
         //Write to the main user anti-noise speaker
