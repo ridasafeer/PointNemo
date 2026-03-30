@@ -9,8 +9,8 @@
 int main ()
 {
 
-    std::vector<float> shatTest(100, 0.0f);
-    Controller controllerObj(shatTest, 100, 0.2);
+    std::vector<float> shatTest(256, 0.0f);
+    Controller controllerObj(shatTest, 256, 0.2);
 
     // main loop: CURRENTLY BLOCKING, 1 THREAD
     std::cout << "main: loop start" << std::endl;

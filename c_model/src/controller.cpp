@@ -82,17 +82,21 @@ std::vector<float> Controller::calibration(
 
 void Controller::pushReferenceSignal() { 
     //receive the refrence signal new values buffer from the audio_proc
-    std::vector<float> inputBuffer = audioProcObj.readReferenceSignal();
+    std::vector<float> inputBuffer = audioProcObj.readReferenceSignal(); //256 samples
+    std::cout << "inputBuffer size : " << inputBuffer.size() << std::endl;
+    std::cout << "\nsize of fxlms x buf check : " << x.size() << std::endl;
     int num_taps = fxlmsObj.getNumTaps();
     //sliding window logic 1: on the pushing into the buffer side
         //num_taps: size of the window, matching the size of the filter impulse response
         //audio buffer size: alll the new samples to place in window
 
-    for (int i = 0; i < inputBuffer.size(); i++) {
+    for (int i = 0; i < inputBuffer.size(); i++) { //0 - 251 (256 samples in current chunk)
         //shift each value into the circular buffer, 
         tail = tail+1 % num_taps; //move tail to sample's new slot
         x[tail] = inputBuffer[i];
     }
+
+
 
 }
 
@@ -107,25 +111,34 @@ void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal,
     //Mnagement of the batch gradient learning
     while (1) {
         //update the reference signal
-        audioProcObj.readReferenceSignal(); //controller is arleady bound to the specific dsp and fxlms instance
-        //compute antinoise
-        fxlmsObj.output(tail);
+        //pushReferenceSignal(); //256 chunk of samples
 
-        //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
-        //Write to the main user anti-noise speaker
-        writeAntinoiseSignal();
+        std::vector<float> refSigChunk = audioProcObj.readReferenceSignal();
+        int num_taps = fxlmsObj.getNumTaps();
 
-        //PATH 2: LMS update
+        for (int i = 0; i < refSigChunk.size(); i++) {
+            //UPDATE X(N) SLIDING WINDOW: shift each value into the circular buffer, 
+            tail = tail+1 % num_taps; //move tail to sample's new slot
+            x[tail] = refSigChunk[i];
 
-        //compute the xf filtered signal before the update
-        fxlmsObj.push_xf(); //xf is internal to fxlms obj
+            //compute antinoise
+            fxlmsObj.output(tail);
 
-        //weight update using the xf
-        fxlmsObj.update();
+            //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
+            //Write to the main user anti-noise speaker
+            writeAntinoiseSignal();
 
-        //Measure the sound seen by the error mic (right beside the main user speaker)
-        int test = audioProcObj.readErrorSignal();
+            //PATH 2: LMS update
+            //compute the xf filtered signal before the update
+            fxlmsObj.push_xf(); //xf is internal to fxlms obj
 
+            //weight update using the xf
+            fxlmsObj.update();
+
+            //Measure the sound seen by the error mic (right beside the main user speaker)
+            int test = audioProcObj.readErrorSignal();
+
+        }
     }
     
     

@@ -10,7 +10,7 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     std::cout << "FxLMS constructor" << std::endl;
 }
 
-void FxLMS::output() const {
+void FxLMS::output(int startIndex) const {
     //produce the anti-noise signal y(n), propagate it forward for speaker output (will travel through S(z) physically)
     //Convolution of filter coefficients with reference signal
     std::cout << "FxLMS.cpp: push_xf()" << std::endl;

@@ -82,7 +82,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             std::cout << "new pcmHandle_t newDeviceHandle appended to handles[]" << std::endl;
 
             //create the handles application-side buffer: to hold a max of 3 periods
-            handles[count]->buffer = new char[16]; //returns int* pointer, can traverse as array on heap
+            handles[count]->buffer = new char[1024]; //returns int* pointer, can traverse as array on heap
 
             handles[count]->sParams = hardwareConfig.sParams;
 
@@ -167,6 +167,7 @@ void AudioIO::initHardware() {
 //TODO: how to identify whcih one is refernce mic or which reference mic to read from
 std::vector<float> AudioIO::readReferenceSignal() {
 
+    x.clear(); //reset this helper vector
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
     std::cout << "AudioIO::readRefSignal()" << handles[0]->device_name << std::endl;
     int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
