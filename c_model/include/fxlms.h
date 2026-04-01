@@ -19,23 +19,22 @@ public:
     void push_xf();
 
     // LMS weight update
-    void update();
+    void update(float e_n);
 
     void updateShat();
 
-    std::vector<float>& getXbuf();
-
-    std::vector<float>& getYbuf();
-
+    std::vector<float>& getXbuf(); //controller reads new x(n) samples
+    std::vector<float>& getYbuf(); //controller reads new y(n) samples
     int getNumTaps();
 
 private:
     int L;                  // Number of Taps (Adaptive filter length)
     int M;                  // Secondary path length
     float mu;               // Step size
-
+    int head;               // circular buffer index head for current x(n) block
+    
+    const std::vector<float> shat; //est sec path 
     std::vector<float> w;   // Adaptive filter weights
-    const std::vector<float> shat;// Secondary-path estimate
     std::vector<float> x;// Reference signal: The true buffer
     std::vector<float> xf;// Filtered-x
     std::vector<float> y; //the current anti-noise output signal
