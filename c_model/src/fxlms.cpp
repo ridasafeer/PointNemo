@@ -12,7 +12,6 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     shat(shat), 
     head(0),
 
-    shat(shat),
     w(L, 0.0f), 
     x(*(new std::vector<float>(L, 0.0f))), 
     xf(L, 0.0f),
@@ -40,10 +39,26 @@ void FxLMS::output(int startIndex) {
     //sliding window logic 2: on the reading for computing each convolution product side
 }
 
+//-----------------------------
+// filtered_x_sample()
+// Computes sample of filtered reference signal after trasnfer fnc
+ 
+// x'(n) = shat^T . [x(n)] 
+//Convolution of reference signal with est second paath
+
 float FxLMS::filtered_x_sample() const {
-    return 0.0f;
+        std::cout << "FxLMS.cpp: filtered_x_sample()" << std::endl;
+        float xn_filtered = 0.0;
+    for (int i = 0; i < M; i++) {
+        int index = (head - i + L) % L;
+        xn_filtered += shat[i] * x[index];
+    }
+    return xn_filtered;
 }
 
+
+//-----------------------------
+// push_xf()
 void FxLMS::push_xf() {
     std::cout << "FxLMS.cpp: push_xf()" << std::endl;
     //convolve x with the shat
