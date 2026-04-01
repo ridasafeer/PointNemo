@@ -16,11 +16,11 @@ public:
     std::vector<float> calibration(const std::vector<float>& x_exc, const std::vector<float>& y_mic, int L, float mu, int passes = 1, float leak = 0.0f);
 
    //Starts learning loop
-    void startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength);
+    void startLearningLoop();
     //Where FXLMS will be used
 
     //functions for interfacing withe audio_proc and the fxlms
-    void pushReferenceSignal();
+    std::vector<float> pushReferenceSignal();
 
     int writeAntinoiseSignal();
 

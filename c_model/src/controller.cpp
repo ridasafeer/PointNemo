@@ -80,31 +80,19 @@ std::vector<float> Controller::calibration(
     return shat;
 }
 
-void Controller::pushReferenceSignal() { 
+ std::vector<float> Controller::pushReferenceSignal() { 
     //receive the refrence signal new values buffer from the audio_proc
     std::vector<float> inputBuffer = audioProcObj.readReferenceSignal(); //256 samples
-    std::cout << "inputBuffer size : " << inputBuffer.size() << std::endl;
+    std::cout << "\ninputBuffer size : " << inputBuffer.size() << std::endl;
     std::cout << "\nsize of fxlms x buf check : " << x.size() << std::endl;
-    int num_taps = fxlmsObj.getNumTaps();
-    //sliding window logic 1: on the pushing into the buffer side
-        //num_taps: size of the window, matching the size of the filter impulse response
-        //audio buffer size: alll the new samples to place in window
-
-    for (int i = 0; i < inputBuffer.size(); i++) { //0 - 251 (256 samples in current chunk)
-        //shift each value into the circular buffer, 
-        tail = tail+1 % num_taps; //move tail to sample's new slot
-        x[tail] = inputBuffer[i];
-    }
-
-
-
+    return inputBuffer;
 }
 
 int Controller::writeAntinoiseSignal() {
     return 0;
 }
 
-void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal, int signalLength) {
+void Controller::startLearningLoop() {
     
     //Manages the entire control flow of the FxLMS algorithm, links input and output buffers, and identifies termination
 
@@ -113,32 +101,39 @@ void Controller::startLearningLoop(float* referenceSignal, float* desiredSignal,
         //update the reference signal
         //pushReferenceSignal(); //256 chunk of samples
 
-        std::vector<float> refSigChunk = audioProcObj.readReferenceSignal();
+        std::vector<float> refSigChunk = pushReferenceSignal();
         int num_taps = fxlmsObj.getNumTaps();
 
         for (int i = 0; i < refSigChunk.size(); i++) {
-            //UPDATE X(N) SLIDING WINDOW: shift each value into the circular buffer, 
-            tail = tail+1 % num_taps; //move tail to sample's new slot
-            x[tail] = refSigChunk[i];
+            //UPDATE X(N) SLIDING WINDOW: shift each value into the circular buffer
+                //sliding window logic 1: on the pushing into the buffer side
+                //num_taps: size of the window, matching the size of the filter impulse response
+                //audio buffer size: alll the new samples to place in window
+            tail = (tail+1) % num_taps; //move tail to sample's new slot
+            printf("%d\n", tail);
+            x.at(tail) = refSigChunk.at(i);
+            //x[tail] = refSigChunk[i];
+            //printf("%x\t", refSigChunk[i]);
 
-            //compute antinoise
-            fxlmsObj.output(tail);
+            // //compute antinoise
+            // fxlmsObj.output(tail);
 
-            //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
-            //Write to the main user anti-noise speaker
-            writeAntinoiseSignal();
+            // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
+            // //Write to the main user anti-noise speaker
+            // writeAntinoiseSignal();
 
-            //PATH 2: LMS update
-            //compute the xf filtered signal before the update
-            fxlmsObj.push_xf(); //xf is internal to fxlms obj
+            // //PATH 2: LMS update
+            // //compute the xf filtered signal before the update
+            // fxlmsObj.push_xf(); //xf is internal to fxlms obj
 
-            //weight update using the xf
-            fxlmsObj.update();
+            // //weight update using the xf
+            // fxlmsObj.update();
 
-            //Measure the sound seen by the error mic (right beside the main user speaker)
-            int test = audioProcObj.readErrorSignal();
+            // //Measure the sound seen by the error mic (right beside the main user speaker)
+            // int test = audioProcObj.readErrorSignal();
 
         }
+        break; //for testing 1 chunk
     }
     
     

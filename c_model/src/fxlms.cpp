@@ -15,7 +15,6 @@ void FxLMS::output(int startIndex) const {
     //Convolution of filter coefficients with reference signal
     std::cout << "FxLMS.cpp: push_xf()" << std::endl;
     //sliding window logic 2: on the reading for computing each convolution product side
-
 }
 
 float FxLMS::filtered_x_sample() const {

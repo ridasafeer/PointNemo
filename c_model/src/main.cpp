@@ -10,18 +10,14 @@ int main ()
 {
 
     std::vector<float> shatTest(256, 0.0f);
-    Controller controllerObj(shatTest, 256, 0.2);
+    Controller controllerObj(shatTest, 101, 0.2);
 
     // main loop: CURRENTLY BLOCKING, 1 THREAD
     std::cout << "main: loop start" << std::endl;
 
-    while (1) {
-
-        std::cout << "main: loop" << std::endl;
-        controllerObj.pushReferenceSignal();
-        std::cout << "Controller: pushReferenceSignal()" << std::endl;
-
-    }
+    std::cout << "main: loop" << std::endl;
+    controllerObj.startLearningLoop();
+    std::cout << "Controller: pushReferenceSignal()" << std::endl;
 
     return 0;
 }

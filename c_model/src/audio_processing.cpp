@@ -169,7 +169,7 @@ std::vector<float> AudioIO::readReferenceSignal() {
 
     x.clear(); //reset this helper vector
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << "AudioIO::readRefSignal()" << handles[0]->device_name << std::endl;
+    std::cout << "AudioIO::readRefSignal() " << handles[0]->device_name << "\n" << std::endl;
     int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
     //push the values read from the buffer into the reference signal buffer: rewrites
     std::cout << snd_strerror(rc) << std::endl;
