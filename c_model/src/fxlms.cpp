@@ -32,11 +32,20 @@ void FxLMS::output(int startIndex) {
     //takes index of ciruclar buffer to lenght of adpative filter (# of coefficients)
     for (int i=0; i<L; i++) {
         int index = (head - i + L) % L;
-        yn_val += w[k] * x[index]; //compute antinoise
+        yn_val += w[k] * x[index]; //convolution
     }
     y[0] = yn_val;
-    std::cout << "FxLMS.cpp: push_xf()" << std::endl;
     //sliding window logic 2: on the reading for computing each convolution product side
+}
+
+//online convolution: single-sample convolution with both circular buffers
+float FxLMS::output_test(int startIndex) {
+    float yn_val;
+    int index = startIndex;
+    for (int i = 0; i < w.size(); i++) {
+        yn_val += w[i] * x[index];
+        index = (index+1) % x.size();
+    }
 }
 
 //-----------------------------

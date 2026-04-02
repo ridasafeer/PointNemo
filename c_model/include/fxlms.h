@@ -24,6 +24,8 @@ public:
 
     void updateShat();
 
+    float output_test(int startIndex); 
+
     std::vector<float>& getXbuf(); //controller reads new x(n) samples
     std::vector<float>& getYbuf(); //controller reads new y(n) samples
     int getNumTaps();

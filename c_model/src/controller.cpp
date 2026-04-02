@@ -105,6 +105,7 @@ void Controller::startLearningLoop() {
         //pushReferenceSignal(); //256 chunk of samples
 
         std::vector<float> refSigChunk = pushReferenceSignal();
+        std::vector<float> antinoiseSigChunk;
         int num_taps = fxlmsObj.getNumTaps();
 
         for (int i = 0; i < refSigChunk.size(); i++) {
@@ -116,8 +117,12 @@ void Controller::startLearningLoop() {
             x[tail] = refSigChunk[i];
             printf("%x\t", refSigChunk[i]);
 
-            // //compute antinoise
-            // fxlmsObj.output(tail);
+            // CONVOLUTION 1: 101 taps
+            float yn_val = fxlmsObj.output_test(tail);
+
+            //OUTPUT SIGNAL CIRCULAR BUFFER: place at current tail
+            y[ytail] = yn_val;
+            ytail = (ytail+1) % y.size();
 
             // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
             // //Write to the main user anti-noise speaker
