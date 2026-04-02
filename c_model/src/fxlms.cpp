@@ -64,7 +64,7 @@ void FxLMS::push_xf_learning() {
 
     float xpn = filtered_x_sample(); //find current x'(n) value
     // push old x'(n) values 1 index 
-    for (int i = L - 1; i > 0; --i)
+    for (int i = L - 1; i > 0; i--)
         xf[i] = xf[i - 1];
 
     xf[0] = xpn;   // newest filtered-reference sample at front
@@ -85,7 +85,7 @@ void FxLMS::update(float e_n){
 
     const float mu_e = mu * e_n;   // scalar: pre-multiply once outside the loop
 
-    for (int i = 0; k < L; i++) {
+    for (int i = 0; i < L; i++) {
         w[i] += mu_e * xf[i];  // standard FxLMS 
         // w[k] = nu * w[k] + mu_e * xf[k];   // leaky FxLMS  idk chat gave me this
 
