@@ -59,10 +59,15 @@ float FxLMS::filtered_x_sample() const {
 
 //-----------------------------
 // push_xf()
-void FxLMS::push_xf() {
+void FxLMS::push_xf_learning() {
     std::cout << "FxLMS.cpp: push_xf()" << std::endl;
-    //convolve x with the shat
 
+    float xpn = filtered_x_sample(); //find current x'(n) value
+    // push old x'(n) values 1 index 
+    for (int i = L - 1; i > 0; --i)
+        xf[i] = xf[i - 1];
+
+    xf[0] = xpn;   // newest filtered-reference sample at front
 
 }
 
