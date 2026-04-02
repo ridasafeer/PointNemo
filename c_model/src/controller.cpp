@@ -88,8 +88,11 @@ std::vector<float> Controller::calibration(
     return inputBuffer;
 }
 
-int Controller::writeAntinoiseSignal() {
-    return 0;
+void Controller::writeAntinoiseSignal() {
+
+    //use internal y buffer and pass to audioProc
+    audioProcObj.writeAntinoiseSignal(y); //could pass by reference? not needed here because its all blocking single threaded flow
+
 }
 
 void Controller::startLearningLoop() {
@@ -110,17 +113,15 @@ void Controller::startLearningLoop() {
                 //num_taps: size of the window, matching the size of the filter impulse response
                 //audio buffer size: alll the new samples to place in window
             tail = (tail+1) % num_taps; //move tail to sample's new slot
-            printf("%d\n", tail);
-            x.at(tail) = refSigChunk.at(i);
-            //x[tail] = refSigChunk[i];
-            //printf("%x\t", refSigChunk[i]);
+            x[tail] = refSigChunk[i];
+            printf("%x\t", refSigChunk[i]);
 
             // //compute antinoise
             // fxlmsObj.output(tail);
 
             // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
             // //Write to the main user anti-noise speaker
-            // writeAntinoiseSignal();
+            writeAntinoiseSignal();
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update

@@ -182,8 +182,11 @@ std::vector<float> AudioIO::readReferenceSignal() {
     return x;
 }
 
-int AudioIO::writeAntinoiseSignal() {
-    return 0;
+void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
+    
+    //alsa write: frames written = number of 
+
+    //error handling if needed
 
 }
 

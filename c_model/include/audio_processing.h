@@ -56,7 +56,7 @@ class AudioIO {
         AudioIO();
         std::vector<float> readReferenceSignal(); //blocking: 
         //int readErrorSignal(float* buffer, int size);
-        int writeAntinoiseSignal();
+        void writeAntinoiseSignal(std::vector<float> outputBuffer);
         int closeInterface(pcmHandle_t* handle);
         int readErrorSignal();
 
