@@ -122,18 +122,23 @@ void Controller::startLearningLoop() {
 
             //OUTPUT SIGNAL CIRCULAR BUFFER: place at current tail
             y[ytail] = yn_val;
-            ytail = (ytail+1) % y.size();
 
-            // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
-            // //Write to the main user anti-noise speaker
-            writeAntinoiseSignal(); //blee
+            if (ytail == y.size()-1) {
+
+                // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
+                // //Write to the main user anti-noise speaker
+                writeAntinoiseSignal(); //blee
+
+            }
+
+            ytail = (ytail+1) % y.size();
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update
-            // fxlmsObj.push_xf(); //xf is internal to fxlms obj
+            fxlmsObj.push_xf_learning(); //xf is internal to fxlms obj
 
             // //weight update using the xf
-            // fxlmsObj.update();
+            //fxlmsObj.update();
 
             // //Measure the sound seen by the error mic (right beside the main user speaker)
             // int test = audioProcObj.readErrorSignal();
