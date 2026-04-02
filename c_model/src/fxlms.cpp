@@ -15,7 +15,7 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     w(L, 0.0f), 
     x(*(new std::vector<float>(L, 0.0f))), 
     xf(L, 0.0f),
-    y(1, 0.0f), {
+    y(1, 0.0f) {
     std::cout << "FxLMS constructor" << std::endl;
 }
 
@@ -28,11 +28,12 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
 
 void FxLMS::output(int startIndex) {
     head = startIndex;
+    float yn_val;
 
     //takes index of ciruclar buffer to lenght of adpative filter (# of coefficients)
     for (int i=0; i<L; i++) {
         int index = (head - i + L) % L;
-        yn_val += w[k] * x[index]; //convolution
+        yn_val += w[i] * x[index]; //convolution
     }
     y[0] = yn_val;
     //sliding window logic 2: on the reading for computing each convolution product side

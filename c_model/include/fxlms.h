@@ -10,7 +10,7 @@ public:
     FxLMS(const std::vector<float>& shat, int L, float mu);
 
     // Compute controller output y(n)
-    void output(int startIndex) const;
+    void output(int startIndex);
 
     // Compute filtered-x sample x_f(n) using x from this class (NOT ISR x)
     float filtered_x_sample() const;

@@ -37,6 +37,6 @@ private:
     
     int tail = 0; //current sample in system time, x(n = t) sample
     //calibrate reference
-    int ytail = 0;
+    int ytail = 0; //argargarg
 
 };

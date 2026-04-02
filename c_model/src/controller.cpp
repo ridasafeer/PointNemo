@@ -126,7 +126,7 @@ void Controller::startLearningLoop() {
 
             // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
             // //Write to the main user anti-noise speaker
-            writeAntinoiseSignal();
+            writeAntinoiseSignal(); //blee
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update
