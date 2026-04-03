@@ -88,10 +88,15 @@ std::vector<float> Controller::calibration(
     return inputBuffer;
 }
 
-void Controller::writeAntinoiseSignal() {
+void Controller::writeAntinoiseSample(float yn_val) {
 
     //use internal y buffer and pass to audioProc
-    audioProcObj.writeAntinoiseSignal(y); //could pass by reference? not needed here because its all blocking single threaded flow
+    std::vector<float> y_alsa_temp;
+    y_alsa_temp.push_back(yn_val);
+    if (y.size() >= 256) { //TODO: dont hardcode this
+        audioProcObj.writeAntinoiseSignal(y_alsa_temp); //could pass by reference? not needed here because its all blocking single threaded flow
+        y_alsa_temp.clear();
+    }
 
 }
 
@@ -123,19 +128,14 @@ void Controller::startLearningLoop() {
             //OUTPUT SIGNAL CIRCULAR BUFFER: place at current tail
             y[ytail] = yn_val;
 
-            if (ytail == y.size()-1) {
-
-                // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
-                // //Write to the main user anti-noise speaker
-                writeAntinoiseSignal(); //blee
-
-            }
+            // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
+            writeAntinoiseSample(yn_val);
 
             ytail = (ytail+1) % y.size();
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update
-            fxlmsObj.push_xf_learning(); //xf is internal to fxlms obj
+            //fxlmsObj.push_xf_learning(); //xf is internal to fxlms obj
 
             // //weight update using the xf
             //fxlmsObj.update();

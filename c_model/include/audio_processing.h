@@ -58,7 +58,7 @@ class AudioIO {
         //int readErrorSignal(float* buffer, int size);
         void writeAntinoiseSignal(std::vector<float> outputBuffer);
         int closeInterface(pcmHandle_t* handle);
-        int readErrorSignal();
+        std::vector<float> readErrorSignal();
 
     private: //just building for ref mic right now
         std::vector<pcmHandle_t*> handles;
@@ -71,7 +71,7 @@ class AudioIO {
         void initHardware();
 
         std::vector<float> x; //buffer to hold the reference signal read from the mic, which will be passed to the controller/fxlms class for processing
-
+        std::vector<float> e; //^ same thing but helper for the error mic reading
 
 
 };

@@ -22,7 +22,7 @@ public:
     //functions for interfacing withe audio_proc and the fxlms
     std::vector<float> pushReferenceSignal();
 
-    void writeAntinoiseSignal();
+    void writeAntinoiseSample(float yn_val);
 
 
 private:
