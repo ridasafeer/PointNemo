@@ -135,7 +135,9 @@ void AudioIO::initHardware() {
         //set mono
         snd_pcm_hw_params_set_format(handles[i]->handle, handles[i]->params, handles[i]->format);
         snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, handles[i]->channels);
-
+        unsigned int rate = handles[i]->sParams.rate;
+        snd_pcm_hw_params_set_rate_near(handles[i]->handle, handles[i]->params, &rate, &handles[i]->dir);
+        
         // set period size
         snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
 

@@ -13,7 +13,7 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     head(0),
 
     w(L, 0.0f), 
-    x(L, 0.0f), //mem leak fix
+    x(std::max(L, M), 0.0f),
     xf(L, 0.0f),
     y(1, 0.0f) {
     std::cout << "FxLMS constructor" << std::endl;
@@ -32,7 +32,7 @@ void FxLMS::output(int startIndex) {
 
     //takes index of ciruclar buffer to lenght of adpative filter (# of coefficients)
     for (int i=0; i<L; i++) {
-        int index = (head - i + L) % L;
+        int index = (head - i + (int)x.size()) % (int)x.size();
         yn_val += w[i] * x[index]; //convolution
     }
     y[0] = yn_val;
@@ -59,10 +59,10 @@ float FxLMS::output_test(int startIndex) {
 //Convolution of reference signal with est second paath
 
 float FxLMS::filtered_x_sample() const {
-        std::cout << "FxLMS.cpp: filtered_x_sample()" << std::endl;
-        float xn_filtered = 0.0;
+    std::cout << "FxLMS.cpp: filtered_x_sample()" << std::endl;
+    float xn_filtered = 0.0;
     for (int i = 0; i < M; i++) {
-        int index = (head - i + L) % L;
+        int index = (head - i + (int)x.size()) % (int)x.size();  // FIXED
         xn_filtered += shat[i] * x[index];
     }
     return xn_filtered;
