@@ -117,3 +117,12 @@ std::vector<float>& FxLMS::getYbuf() {
 int FxLMS::getNumTaps() {
     return L;
 }
+
+// FOR LOGGING
+const std::vector<float>& FxLMS::getWeights() const {
+    return w;
+}
+
+const std::vector<float>& FxLMS::getFilteredXBuffer() const {
+    return xf;
+}

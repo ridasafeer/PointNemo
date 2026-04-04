@@ -137,7 +137,7 @@ void AudioIO::initHardware() {
         snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, handles[i]->channels);
         unsigned int rate = handles[i]->sParams.rate;
         snd_pcm_hw_params_set_rate_near(handles[i]->handle, handles[i]->params, &rate, &handles[i]->dir);
-        
+
         // set period size
         snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
 
@@ -226,16 +226,21 @@ int AudioIO::closeInterface(pcmHandle_t* handle) {
 std::vector<float> AudioIO::readErrorSignal() {
     
     e.clear(); //reset this helper vector
-    //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << "AudioIO::readRefSignal() " << handles[2]->device_name << "\n" << std::endl;
-    int rc = snd_pcm_readi(handles[2]->handle, (void*)handles[2]->buffer, handles[2]->sParams.period_size); //read period_size num of frames for the current chunk
-    //push the values read from the buffer into the reference signal buffer: rewrites
-    std::cout << snd_strerror(rc) << std::endl;
-    // //we should only be allowed to read reference signal if the application buffer is full?
-    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        e.push_back(handles[2]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[2]->buffer[i]);
-    }
 
+    //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
+    //std::cout << "AudioIO::readRefSignal() " << handles[2]->device_name << "\n" << std::endl;
+    
+    int rc = snd_pcm_readi(handles[2]->handle, handles[2]->buffer, handles[2]->sParams.period_size); //read period_size num of frames for the current chunk
+    if (rc < 0) snd_pcm_recover(handles[2]->handle, rc, 0);
+    //push the values read from the buffer into the reference signal buffer: rewrites
+    //std::cout << snd_strerror(rc) << std::endl;
+
+    int32_t* samples = reinterpret_cast<int32_t*>(handles[2]->buffer);
+    
+    // //we should only be allowed to read reference signal if the application buffer is full?
+    for (int i = 0; i < handles[2]->sParams.period_size; i++) {
+        e.push_back(samples[i * 2] / (float)INT32_MAX); // left channel
+    }
+    
     return e;
 }

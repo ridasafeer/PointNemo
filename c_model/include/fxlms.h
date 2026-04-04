@@ -29,6 +29,10 @@ public:
     std::vector<float>& getXbuf(); //controller reads new x(n) samples
     std::vector<float>& getYbuf(); //controller reads new y(n) samples
     int getNumTaps();
+    
+    // FOR LOG PRINTING
+    const std::vector<float>& getWeights() const;
+    const std::vector<float>& getFilteredXBuffer() const;
 
 private:
     int L;                  // Number of Taps (Adaptive filter length)

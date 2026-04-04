@@ -5,6 +5,21 @@
 
 #include "controller.h"
 #include <stdexcept>
+#include <iomanip>
+#include <algorithm>
+
+// Helper function for logging vectors. I AI'd this idk how it works heh
+static void printFirstN(const std::string& label, const std::vector<float>& v, int n = 8) {
+    std::cout << label << " [";
+    int lim = std::min((int)v.size(), n);
+    for (int i = 0; i < lim; ++i) {
+        std::cout << std::fixed << std::setprecision(5) << v[i];
+        if (i < lim - 1) std::cout << ", ";
+    }
+    if ((int)v.size() > n) std::cout << ", ...";
+    std::cout << "]\n";
+}
+
 
 Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(L), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()) {
     std::cout << "inside controller constructor" << std::endl;
@@ -85,6 +100,7 @@ std::vector<float> Controller::calibration(
     std::vector<float> inputBuffer = audioProcObj.readReferenceSignal(); //256 samples
     std::cout << "\ninputBuffer size : " << inputBuffer.size() << std::endl;
     std::cout << "\nsize of fxlms x buf check : " << x.size() << std::endl;
+    printFirstN("MIC IN", inputBuffer, 8); // shows first 8 normalized mic samples in each chunk
     return inputBuffer;
 }
 
@@ -94,6 +110,7 @@ void Controller::writeAntinoiseSample(float yn_val) {
     static std::vector<float> y_alsa_temp; //make static
     y_alsa_temp.push_back(yn_val);
     if ((int)y_alsa_temp.size() >= (int)audioProcObj.getPeriodSize()) { //unhardcoded
+        printFirstN("SPKR OUT", y_alsa_temp, 8);
         audioProcObj.writeAntinoiseSignal(y_alsa_temp);
         y_alsa_temp.clear();
     }
@@ -120,7 +137,6 @@ void Controller::startLearningLoop() {
                 //audio buffer size: alll the new samples to place in window
             tail = (tail+1) % num_taps; //move tail to sample's new slot
             x[tail] = refSigChunk[i];
-            printf("%x\t", refSigChunk[i]);
 
             // CONVOLUTION 1: 101 taps
             float yn_val = fxlmsObj.output_test(tail);
@@ -137,8 +153,14 @@ void Controller::startLearningLoop() {
             //compute the xf filtered signal before the update
         fxlmsObj.push_xf_learning();
         }
+        
+        printFirstN("W COEFFS", fxlmsObj.getWeights(), 8);
+        printFirstN("XF BUF", fxlmsObj.getFilteredXBuffer(), 8);
+        std::cout << "----------------------------------------" << std::endl;
 
-        // read error mic after chunk COMMENTED OUT CUZ ERROR MIC NOT CONNECTED
+        // ***** COMMENTED OUT CUZ ERROR MIC NOT CONNECTED ******
+
+        // read error mic after chunk
         // std::vector<float> errorChunk = audioProcObj.readErrorSignal();
         // for (int i = 0; i < (int)errorChunk.size(); i++) {
         //     fxlmsObj.update(errorChunk[i]);
