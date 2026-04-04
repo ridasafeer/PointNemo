@@ -13,7 +13,7 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     head(0),
 
     w(L, 0.0f), 
-    x(*(new std::vector<float>(L, 0.0f))), 
+    x(L, 0.0f), //mem leak fix
     xf(L, 0.0f),
     y(1, 0.0f) {
     std::cout << "FxLMS constructor" << std::endl;
@@ -28,7 +28,7 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
 
 void FxLMS::output(int startIndex) {
     head = startIndex;
-    float yn_val;
+    float yn_val = 0.0f; //init to zero
 
     //takes index of ciruclar buffer to lenght of adpative filter (# of coefficients)
     for (int i=0; i<L; i++) {
@@ -41,12 +41,14 @@ void FxLMS::output(int startIndex) {
 
 //online convolution: single-sample convolution with both circular buffers
 float FxLMS::output_test(int startIndex) {
-    float yn_val;
+    head = startIndex; //update head to the current sample index in circular buffer
+    float yn_val = 0.0f; //init to zero
     int index = startIndex;
     for (int i = 0; i < w.size(); i++) {
         yn_val += w[i] * x[index];
         index = (index+1) % x.size();
     }
+    return yn_val; //missed this domminy more like dumbahhminy
 }
 
 //-----------------------------

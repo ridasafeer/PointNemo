@@ -82,19 +82,26 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             std::cout << "new pcmHandle_t newDeviceHandle appended to handles[]" << std::endl;
 
             //create the handles application-side buffer: to hold a max of 3 periods
-            handles[count]->buffer = new char[1024]; //returns int* pointer, can traverse as array on heap
+            //handles[count]->buffer = new char[1024]; //returns int* pointer, can traverse as array on heap
+
+            int bytes_per_frame = (std::string(currentDevice) == "reference_mics" || std::string(currentDevice) == "error_mics")
+                ? 2 * sizeof(int32_t)   // mic: stereo S32_LE
+                : 2 * sizeof(int16_t);  // speaker: stereo S16_LE
+
+            handles[count]->buffer = new char[hardwareConfig.sParams.period_size * bytes_per_frame];
 
             handles[count]->sParams = hardwareConfig.sParams;
 
             //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
-            if (currentDevice == "reference_mics" | currentDevice == "error_mics") {
+            if (std::string(currentDevice) == "reference_mics" || std::string(currentDevice) == "error_mics") {
                 handles[count]->direction = SND_PCM_STREAM_CAPTURE;
+                handles[count]->channels = 2;
+                handles[count]->format = SND_PCM_FORMAT_S32_LE;
             } else {
                 handles[count]->direction = SND_PCM_STREAM_PLAYBACK;
+                handles[count]->channels = 2;
+                handles[count]->format = SND_PCM_FORMAT_S16_LE;
             }
-
-            handles[count]->channels = 2; //all are stereo
-            handles[count]->format = SND_PCM_FORMAT_S16_LE; //all used signed 16 bit
             count++;
         }
     }
@@ -126,7 +133,8 @@ void AudioIO::initHardware() {
         std::cout << "alsa default params()" << std::endl;
 
         //set mono
-        snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, 1);
+        snd_pcm_hw_params_set_format(handles[i]->handle, handles[i]->params, handles[i]->format);
+        snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, handles[i]->channels);
 
         // set period size
         snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
@@ -166,37 +174,46 @@ void AudioIO::initHardware() {
 //Designed for only 1 reference mic signal
 //TODO: how to identify whcih one is refernce mic or which reference mic to read from
 std::vector<float> AudioIO::readReferenceSignal() {
+    x.clear();
+    int rc = snd_pcm_readi(handles[0]->handle, handles[0]->buffer, handles[0]->sParams.period_size);
+    if (rc < 0) snd_pcm_recover(handles[0]->handle, rc, 0);
 
-    x.clear(); //reset this helper vector
-    //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << "AudioIO::readRefSignal() " << handles[0]->device_name << "\n" << std::endl;
-    int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
-    //push the values read from the buffer into the reference signal buffer: rewrites
-    std::cout << snd_strerror(rc) << std::endl;
-    // //we should only be allowed to read reference signal if the application buffer is full?
+    int32_t* samples = reinterpret_cast<int32_t*>(handles[0]->buffer);
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[0]->buffer[i]);
+        // interleaved stereo: even = left, odd = right, take left only
+        x.push_back(samples[i * 2] / (float)INT32_MAX);
     }
-
     return x;
 }
+//bruh rida kys idt this lets it output to stereo channels
+
+// void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
+    
+//     //find handle of the anti-noise playback device
+
+//     //just to be nice, we should put these values into the actual designated buffer for the handle
+//     std::copy();
+
+//     //alsa write: frames written = number of 
+//     snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
+//     //error handling if needed
+//     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
+//         x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
+//         printf("%x\t", handles[0]->buffer[i]);
+//     }
+
+// }
 
 void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
-    
-    //find handle of the anti-noise playback device
-
-    //just to be nice, we should put these values into the actual designated buffer for the handle
-    std::copy();
-
-    //alsa write: frames written = number of 
-    snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
-    //error handling if needed
-    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[0]->buffer[i]);
+    int16_t* buf = reinterpret_cast<int16_t*>(handles[1]->buffer);
+    for (int i = 0; i < (int)outputBuffer.size(); i++) {
+        float clamped = std::max(-1.0f, std::min(1.0f, outputBuffer[i]));
+        int16_t sample = static_cast<int16_t>(clamped * 32767.0f);
+        buf[i * 2]     = sample;  // left channel
+        buf[i * 2 + 1] = sample;  // right channel (duplicate)
     }
-
+    int rc = snd_pcm_writei(handles[1]->handle, handles[1]->buffer, handles[1]->sParams.period_size);
+    if (rc < 0) snd_pcm_recover(handles[1]->handle, rc, 0);
 }
 
 int AudioIO::closeInterface(pcmHandle_t* handle) {

@@ -91,10 +91,10 @@ std::vector<float> Controller::calibration(
 void Controller::writeAntinoiseSample(float yn_val) {
 
     //use internal y buffer and pass to audioProc
-    std::vector<float> y_alsa_temp;
+    static std::vector<float> y_alsa_temp; //make static
     y_alsa_temp.push_back(yn_val);
-    if (y.size() >= 256) { //TODO: dont hardcode this
-        audioProcObj.writeAntinoiseSignal(y_alsa_temp); //could pass by reference? not needed here because its all blocking single threaded flow
+    if ((int)y_alsa_temp.size() >= (int)audioProcObj.getPeriodSize()) { //unhardcoded
+        audioProcObj.writeAntinoiseSignal(y_alsa_temp);
         y_alsa_temp.clear();
     }
 
@@ -126,28 +126,24 @@ void Controller::startLearningLoop() {
             float yn_val = fxlmsObj.output_test(tail);
 
             //OUTPUT SIGNAL CIRCULAR BUFFER: place at current tail
-            y[ytail] = yn_val;
+            //y[ytail] = yn_val;
 
             // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
             writeAntinoiseSample(yn_val);
 
-            ytail = (ytail+1) % y.size();
+            //ytail = (ytail+1) % y.size();
 
-            // //PATH 2: LMS update
-            // //compute the xf filtered signal before the update
-            //fxlmsObj.push_xf_learning(); //xf is internal to fxlms obj
-
-            // //weight update using the xf
-            //fxlmsObj.update();
-
-            // //Measure the sound seen by the error mic (right beside the main user speaker)
-            // int test = audioProcObj.readErrorSignal();
-
+            //PATH 2: LMS update
+            //compute the xf filtered signal before the update
+        fxlmsObj.push_xf_learning();
         }
-        break; //for testing 1 chunk
+
+        // read error mic after chunk COMMENTED OUT CUZ ERROR MIC NOT CONNECTED
+        // std::vector<float> errorChunk = audioProcObj.readErrorSignal();
+        // for (int i = 0; i < (int)errorChunk.size(); i++) {
+        //     fxlmsObj.update(errorChunk[i]);
+        // }
     }
-    
-    
 }
     
 

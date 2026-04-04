@@ -30,7 +30,7 @@ private:
     DSP dspObj;
     FxLMS fxlmsObj;
     AudioIO audioProcObj;
-    std::vector<float> &shat;
+    std::vector<float> shat;
     std::vector<float> &x;
     std::vector<float> &y;
     float errorSignal;

@@ -59,6 +59,7 @@ class AudioIO {
         void writeAntinoiseSignal(std::vector<float> outputBuffer);
         int closeInterface(pcmHandle_t* handle);
         std::vector<float> readErrorSignal();
+        int getPeriodSize() { return hardwareConfig.sParams.period_size; }  // I ADDED THIS FOR THE CONTROLLER TO KNOW WHEN TO WRITE TO ALSA, CAN CHANGE LATER IF NEEDED
 
     private: //just building for ref mic right now
         std::vector<pcmHandle_t*> handles;
