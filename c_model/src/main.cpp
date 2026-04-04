@@ -14,10 +14,8 @@ int main ()
 
     // main loop: CURRENTLY BLOCKING, 1 THREAD
     std::cout << "main: loop start" << std::endl;
-
-    std::cout << "main: loop" << std::endl;
     controllerObj.startLearningLoop();
-    std::cout << "Controller: pushReferenceSignal()" << std::endl;
+    std::cout << "awooga" << std::endl;
 
     return 0;
 }
