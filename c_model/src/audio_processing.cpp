@@ -199,7 +199,7 @@ void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
     //find handle of the anti-noise playback device
 
     //just to be nice, we should put these values into the actual designated buffer for the handle
-    std::copy();
+    //std::copy();
 
     //alsa write: frames written = number of 
     snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
