@@ -22,7 +22,7 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     // Initialize audio processing interface
     CSimpleIniA::TNamesDepend sections;
     CSimpleIniA::TNamesDepend keys;
-    //fill in the hardwareConfig str uct with the details from the ini file, using the SimpleIni library
+    //fill in the hardwareConfig struct with the details from the ini file, using the SimpleIni library
     SI_Error rc = ini.LoadFile(cfgFilePath);
     // if (rc < 0) {
     //     std::cout << rc << std::endl;

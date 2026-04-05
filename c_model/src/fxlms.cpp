@@ -45,7 +45,7 @@ float FxLMS::output_test(int startIndex) {
     int index = startIndex;
     for (int i = 0; i < w.size(); i++) {
         yn_val += w[i] * x[index];
-        index = (index+1) % x.size();
+        index = (index + L - 1) % L; // move backwards through circular buffer to read recent history
     }
     return yn_val;
 }
@@ -57,12 +57,13 @@ float FxLMS::output_test(int startIndex) {
 // x'(n) = shat^T . [x(n)] 
 //Convolution of reference signal with est second paath
 
-float FxLMS::filtered_x_sample() const {
+float FxLMS::filtered_x_sample(int startIndex) {
         std::cout << "FxLMS.cpp: filtered_x_sample()" << std::endl;
         float xn_filtered = 0.0;
-    for (int i = 0; i < M; i++) {
-        int index = (head - i + L) % L;
+        int index = startIndex;
+    for (int i = 0; i < L; i++) {
         xn_filtered += shat[i] * x[index];
+        int index = (index - 1 + L) % L;
     }
     return xn_filtered;
 }
@@ -83,7 +84,7 @@ void FxLMS::push_xf_learning() {
 }
 
 //-----------------------------
-// update w coeffs
+// update w coeffs: stochastic gradient descent
 // slightly adjust those weights for the next antinoise output
 
 //e_n - error signal
@@ -98,8 +99,6 @@ void FxLMS::update(float e_n){
 
     for (int i = 0; i < L; i++) {
         w[i] += mu_e * xf[i];  // standard FxLMS 
-        // w[k] = nu * w[k] + mu_e * xf[k];   // leaky FxLMS  idk chat gave me this
-
     }
 }
 
