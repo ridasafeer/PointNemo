@@ -41,12 +41,13 @@ void FxLMS::output(int startIndex) {
 
 //online convolution: single-sample convolution with both circular buffers
 float FxLMS::output_test(int startIndex) {
-    float yn_val;
+    float yn_val = 0.0f;
     int index = startIndex;
     for (int i = 0; i < w.size(); i++) {
         yn_val += w[i] * x[index];
         index = (index+1) % x.size();
     }
+    return yn_val;
 }
 
 //-----------------------------

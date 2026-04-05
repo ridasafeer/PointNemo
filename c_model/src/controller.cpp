@@ -120,7 +120,7 @@ void Controller::startLearningLoop() {
                 //audio buffer size: alll the new samples to place in window
             tail = (tail+1) % num_taps; //move tail to sample's new slot
             x[tail] = refSigChunk[i];
-            printf("%x\t", refSigChunk[i]);
+            printf("%.4f\t", refSigChunk[i]);
 
             // CONVOLUTION 1: 101 taps
             float yn_val = fxlmsObj.output_test(tail);

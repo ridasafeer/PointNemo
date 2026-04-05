@@ -124,13 +124,19 @@ void AudioIO::initHardware() {
         // fill with default values
         snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
         std::cout << "alsa default params()" << std::endl;
-
+        
+        snd_pcm_hw_params_set_access(handles[i]->handle, handles[i]->params, SND_PCM_ACCESS_RW_INTERLEAVED); //tell alsa interleaved mode is being used
+        snd_pcm_hw_params_set_format(handles[i]->handle, handles[i]->params, SND_PCM_FORMAT_S16_LE);         //tell alsa each sample is 16 little indian
+        
         //set mono
         snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, 1);
 
         // set period size
         snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
 
+        // set sample rate (48000 Hz)
+        snd_pcm_hw_params_set_rate_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.rate, &handles[i]->dir);
+        
         snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
 
         //debug: what the pcm params are for this file at the end of this function
@@ -172,7 +178,13 @@ std::vector<float> AudioIO::readReferenceSignal() {
     std::cout << "AudioIO::readRefSignal() " << handles[0]->device_name << "\n" << std::endl;
     int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
     //push the values read from the buffer into the reference signal buffer: rewrites
-    std::cout << snd_strerror(rc) << std::endl;
+    
+    //std::cout << snd_strerror(rc) << std::endl;  
+    //COMMENTED THE ABOVE OUT BC POSITIVE RC VALUES MADE IT PRINT OUT "Unknown Error 256" so changed it so it prints it out only for rc < 0
+    if (rc < 0) {
+        std::cout << "snd_pcm_readi error: " << snd_strerror(rc) << std::endl;
+        }
+
     // //we should only be allowed to read reference signal if the application buffer is full?
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
         x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
@@ -187,7 +199,7 @@ void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
     //find handle of the anti-noise playback device
 
     //just to be nice, we should put these values into the actual designated buffer for the handle
-    std::copy();
+    //std::copy();
 
     //alsa write: frames written = number of 
     snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
