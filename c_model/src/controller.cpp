@@ -141,7 +141,7 @@ void Controller::startLearningLoop() {
             //fxlmsObj.update();
 
             // //Measure the sound seen by the error mic (right beside the main user speaker)
-            // int test = audioProcObj.readErrorSignal();
+            std::vector<float> e = audioProcObj.readErrorSignal();
 
         }
         break; //for testing 1 chunk
