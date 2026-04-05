@@ -135,8 +135,7 @@ void Controller::startLearningLoop() {
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update
-            //fxlmsObj.push_xf_learning(); //xf is internal to fxlms obj
-
+            fxlmsObj.filtered_x_sample();
             // //weight update using the xf
             //fxlmsObj.update();
 
