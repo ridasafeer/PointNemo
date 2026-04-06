@@ -64,6 +64,7 @@ float FxLMS::filtered_x_sample() {
         xf[xf_tail] += shat[i] * x[index];
         int index = (index - 1 + L) % L;
     }
+    printf("Corresponding xf sample computed : %.4f\t", xf[xf_tail]);
     return xf[xf_tail];
 }
 
