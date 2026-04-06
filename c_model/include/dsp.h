@@ -13,6 +13,8 @@ class DSP {
     void resampling(std::vector<float> &, const std::vector<float> &, const std::vector<float> &, std::vector<float> &, int , int);
     float dot_product(const std::vector<float>& a, const std::vector<float>& b, int len);
     void fir_convolution(std::vector<float>& y, const std::vector<float>& x, const std::vector<float>& h, const std::vector<float>& state);
+    void FFT_recursive(const std::vector<std::complex<float>> &x, std::vector<std::complex<float>> &Xf);
+
     private:
     int num_taps; //L
 };

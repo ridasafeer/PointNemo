@@ -195,3 +195,35 @@ float DSP::dot_product(const std::vector<float>& a, const std::vector<float>& b,
     return result;
 }
 
+void DSP::FFT_recursive(const std::vector<std::complex<float>> &x, std::vector<std::complex<float>> &Xf) {
+    if (Xf.size() != x.size())
+        Xf.resize(x.size());
+
+    if (x.size() == 1) {
+        Xf[0] = x[0];
+        return;
+    }
+
+    std::vector<std::complex<float>> xe(x.size() / 2);
+    std::vector<std::complex<float>> xo(x.size() / 2);
+    std::vector<std::complex<float>> Xfe(x.size() / 2);
+    std::vector<std::complex<float>> Xfo(x.size() / 2);
+
+    for (int i = 0; i<(int)x.size(); i++) {
+        if ((i % 2) == 0)
+            xe[i/2] = x[i];
+        else
+            xo[i/2] = x[i];
+    }
+
+    FFT_recursive(xe, Xfe);
+    FFT_recursive(xo, Xfo);
+
+    for (int i=0; i<(int)xe.size(); i++) {
+        std::complex<float> expval(0.0f, -2.0f * PI * float(i) / x.size());
+        std::complex<float> twiddle = std::exp(expval);
+
+        Xf[i] = Xfe[i] + twiddle * Xfo[i];
+        Xf[i + xe.size()] = Xfe[i] - twiddle * Xfo[i];
+    }
+}
