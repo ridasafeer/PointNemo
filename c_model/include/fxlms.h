@@ -15,10 +15,6 @@ public:
     // Compute filtered-x sample x_f(n) using x from this class (NOT ISR x)
     float filtered_x_sample(int startIndex);
 
-    // Push filtered-x into buffer for learning
-    // Maintains the history of filtered reference samples and keeps reference signal as vector used for weight update
-    void push_xf_learning();
-
     // LMS weight update
     void update(float e_n);
 

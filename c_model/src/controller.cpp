@@ -90,7 +90,7 @@ std::vector<float> Controller::calibration(
 
 void Controller::writeAntinoiseSample(float yn_val) {
 
-    //use internal y buffer and pass to audioProc
+    //use internal y buffer and pass to audioProc only when chunk is ready
     std::vector<float> y_alsa_temp;
     y_alsa_temp.push_back(yn_val);
     if (y.size() >= 256) { //TODO: dont hardcode this
@@ -130,17 +130,17 @@ void Controller::startLearningLoop() {
 
             // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
             writeAntinoiseSample(yn_val);
-
             ytail = (ytail+1) % y.size();
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update
             float xf_val = fxlmsObj.filtered_x_sample(tail);
-            // //weight update using the xf: will internally update in the fxlms w vector
-            fxlmsObj.update();
 
             // //Measure the sound seen by the error mic (right beside the main user speaker)
-            std::vector<float> e = audioProcObj.readErrorSignal();
+            std::vector<float> e_n = audioProcObj.readErrorSignal(); //reads chunk
+
+            // //weight update using the xf: will internally update in the fxlms w vector
+            fxlmsObj.update(e_n);
 
         }
         break; //for testing 1 chunk
