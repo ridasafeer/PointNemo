@@ -91,9 +91,10 @@ std::vector<float> Controller::calibration(
 void Controller::writeAntinoiseSample(float yn_val) {
 
     //use internal y buffer and pass to audioProc only when chunk is ready
-    std::vector<float> y_alsa_temp;
+    static std::vector<float> y_alsa_temp; //TODO: static quick fix, change this to not use static pls
     y_alsa_temp.push_back(yn_val);
-    if (y.size() >= 256) { //TODO: dont hardcode this
+    std::cout << "Size of antinoise buff" << y_alsa_temp.size() << std::endl;
+    if (y_alsa_temp.size() >= 256) { //TODO: dont hardcode this
         audioProcObj.writeAntinoiseSignal(y_alsa_temp); //could pass by reference? not needed here because its all blocking single threaded flow
         y_alsa_temp.clear();
     }
@@ -106,8 +107,6 @@ void Controller::startLearningLoop() {
 
     //Mnagement of the batch gradient learning
     while (1) {
-        //update the reference signal
-        //pushReferenceSignal(); //256 chunk of samples
 
         std::vector<float> refSigChunk = pushReferenceSignal();
         std::vector<float> antinoiseSigChunk;
@@ -120,7 +119,7 @@ void Controller::startLearningLoop() {
                 //audio buffer size: alll the new samples to place in window
             tail = (tail+1) % num_taps; //move tail to sample's new slot
             x[tail] = refSigChunk[i];
-            printf("%.4f\t", refSigChunk[i]);
+            printf("New x[n] sample: %.4f\t", refSigChunk[i]);
 
             // CONVOLUTION 1: 101 taps
             float yn_val = fxlmsObj.output_test(tail);
@@ -130,17 +129,19 @@ void Controller::startLearningLoop() {
 
             // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
             writeAntinoiseSample(yn_val);
+            printf("Current iteration %d: %.4f\t", i, yn_val);
+
             ytail = (ytail+1) % y.size();
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update
             float xf_val = fxlmsObj.filtered_x_sample(tail);
 
-            // //Measure the sound seen by the error mic (right beside the main user speaker)
-            std::vector<float> e_n = audioProcObj.readErrorSignal(); //reads chunk
+            // // //Measure the sound seen by the error mic (right beside the main user speaker)
+            // std::vector<float> e_n = audioProcObj.readErrorSignal(); //reads chunk
 
-            // //weight update using the xf: will internally update in the fxlms w vector
-            fxlmsObj.update(e_n);
+            // // //weight update using the xf: will internally update in the fxlms w vector
+            // fxlmsObj.update(e_n);
 
         }
         break; //for testing 1 chunk

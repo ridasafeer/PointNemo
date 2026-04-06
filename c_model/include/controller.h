@@ -35,8 +35,10 @@ private:
     std::vector<float> &y;
     float errorSignal;
     
-    int tail = 0; //current sample in system time, x(n = t) sample
+    int tail = -1; //current sample in system time, x(n = t) sample
     //calibrate reference
     int ytail = 0; //argargarg
+
+    //todo: refactor so these tails abide by the same logic
 
 };

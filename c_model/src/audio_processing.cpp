@@ -200,12 +200,11 @@ void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
 
     //just to be nice, we should put these values into the actual designated buffer for the handle
     //std::copy();
-
+    std::cout << "AudioIO::writeAntiSignal() " << handles[1]->device_name << "\n" << std::endl;
     //alsa write: frames written = number of 
     snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
     //error handling if needed
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
         printf("%x\t", handles[0]->buffer[i]);
     }
 
