@@ -9,18 +9,17 @@ public:
     //shat is const because it iwll not be mutable during the program
     FxLMS(const std::vector<float>& shat, int L, float mu);
 
-    // Compute controller output y(n)
-    void output(int startIndex);
-
     // Compute filtered-x sample x_f(n) using x from this class (NOT ISR x)
-    float filtered_x_sample(int startIndex);
+    float filtered_x_sample();
+
+    void push_reference_sample(float curr_sample);
 
     // LMS weight update
     void update(float e_n);
 
     void updateShat();
 
-    float output_test(int startIndex); 
+    float output(); 
 
     std::vector<float>& getXbuf(); //controller reads new x(n) samples
     std::vector<float>& getYbuf(); //controller reads new y(n) samples
@@ -30,7 +29,10 @@ private:
     int L;                  // Number of Taps (Adaptive filter length)
     int M;                  // Secondary path length
     float mu;               // Step size
-    int head;               // circular buffer index head for current x(n) block
+
+    int x_tail = -1;              // circular buffer index head for current x(n) block
+    int xf_tail = -1;            // circular buffer tail index for xf[n] signal
+    int y_tail = -1;             // circular buffer tail index for y[n] signal
     
     const std::vector<float> shat; //est sec path 
     std::vector<float> w;   // Adaptive filter weights

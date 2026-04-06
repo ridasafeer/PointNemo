@@ -10,10 +10,12 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     M(static_cast<int>(shat.size())), 
     mu(mu), 
     shat(shat), 
-    head(0),
+    x_tail(-1),
+    xf_tail(-1),
+    y_tail(-1),
 
     w(L, 0.0f), 
-    x(*(new std::vector<float>(L, 0.0f))), 
+    x(L, 0.0f), 
     xf(L, 0.0f),
     y(1, 0.0f) {
     std::cout << "FxLMS constructor" << std::endl;
@@ -26,28 +28,24 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
 //produce the anti-noise signal y(n), propagate it forward for speaker output (will travel through S(z) physically)
 //Convolution of filter coefficients with reference signal
 
-void FxLMS::output(int startIndex) {
-    head = startIndex;
-    float yn_val;
-
-    //takes index of ciruclar buffer to lenght of adpative filter (# of coefficients)
-    for (int i=0; i<L; i++) {
-        int index = (head - i + L) % L;
-        yn_val += w[i] * x[index]; //convolution
-    }
-    y[0] = yn_val;
-    //sliding window logic 2: on the reading for computing each convolution product side
+void FxLMS::push_reference_sample(float curr_sample) {
+        x_tail = (x_tail+1) % L; //move tail to sample's new slot
+        x[x_tail] = curr_sample;
+        printf("New x[n] sample: %.4f\t", curr_sample);
 }
 
 //online convolution: single-sample convolution with both circular buffers
-float FxLMS::output_test(int startIndex) {
-    float yn_val = 0.0f;
-    int index = startIndex;
+float FxLMS::output() {
+    
+    ytail = (ytail+1) % y.size(); //move to next spot for current value to be placed in
+    y[y_tail] = 0.0f; //reset that value to 0
+
+    int index = x_tail;
     for (int i = 0; i < w.size(); i++) {
-        yn_val += w[i] * x[index];
+        y[y_tail] += w[i] * x[index];
         index = (index + L - 1) % L; // move backwards through circular buffer to read recent history
     }
-    return yn_val;
+    return y[y_tail];
 }
 
 //-----------------------------
@@ -57,10 +55,9 @@ float FxLMS::output_test(int startIndex) {
 // x'(n) = shat^T . [x(n)] 
 //Convolution of reference signal with est second paath
 
-float FxLMS::filtered_x_sample(int startIndex) {
-        std::cout << "FxLMS.cpp: filtered_x_sample()" << std::endl;
-        float xn_filtered = 0.0;
-        int index = startIndex;
+float FxLMS::filtered_x_sample() {
+        //std::cout << "FxLMS.cpp: filtered_x_sample()" << std::endl;
+        int index = x_tail; //current sample of the x[n] signal - TOD; should be internal to fxlms as well
     for (int i = 0; i < L; i++) {
         xn_filtered += shat[i] * x[index];
         int index = (index - 1 + L) % L;

@@ -80,7 +80,7 @@ std::vector<float> Controller::calibration(
     return shat;
 }
 
- std::vector<float> Controller::pushReferenceSignal() { 
+ std::vector<float> Controller::readReferenceSignal() { 
     //receive the refrence signal new values buffer from the audio_proc
     std::vector<float> inputBuffer = audioProcObj.readReferenceSignal(); //256 samples
     std::cout << "\ninputBuffer size : " << inputBuffer.size() << std::endl;
@@ -101,6 +101,18 @@ void Controller::writeAntinoiseSample(float yn_val) {
 
 }
 
+void Controller::pushReferenceSample(float refSigSample) {
+    //push new sample into the x buffer, which is used for the convolution and update
+    fxlmsObj.push_reference_sample(refSigSample);  
+}
+
+float Controller::computeAntinoiseSample(int i) {
+    // CONVOLUTION 1: 101 taps
+    float yn_val = fxlmsObj.output();
+    printf("Current iteration %d: %.4f\t", i, yn_val);
+    return yn_val;
+}
+
 void Controller::startLearningLoop() {
     
     //Manages the entire control flow of the FxLMS algorithm, links input and output buffers, and identifies termination
@@ -108,34 +120,21 @@ void Controller::startLearningLoop() {
     //Mnagement of the batch gradient learning
     while (1) {
 
-        std::vector<float> refSigChunk = pushReferenceSignal();
+        std::vector<float> refSigChunk = readReferenceSignal();
         std::vector<float> antinoiseSigChunk;
         int num_taps = fxlmsObj.getNumTaps();
 
         for (int i = 0; i < refSigChunk.size(); i++) {
-            //UPDATE X(N) SLIDING WINDOW: shift each value into the circular buffer
-                //sliding window logic 1: on the pushing into the buffer side
-                //num_taps: size of the window, matching the size of the filter impulse response
-                //audio buffer size: alll the new samples to place in window
-            tail = (tail+1) % num_taps; //move tail to sample's new slot
-            x[tail] = refSigChunk[i];
-            printf("New x[n] sample: %.4f\t", refSigChunk[i]);
 
-            // CONVOLUTION 1: 101 taps
-            float yn_val = fxlmsObj.output_test(tail);
+            pushReferenceSample(refSigChunk[i]); //push new sample into the x buffer, which is used for the convolution and update
 
-            //OUTPUT SIGNAL CIRCULAR BUFFER: place at current tail
-            y[ytail] = yn_val;
+            float yn_val = computeAntinoiseSample(i); //compute the current antinoise sample using the current w coeffs and x buffer
 
-            // //PATH 1: send the output signal to the speakers, going through the real S(z) in the DSP/physical env as it travels to the error mic
             writeAntinoiseSample(yn_val);
-            printf("Current iteration %d: %.4f\t", i, yn_val);
-
-            ytail = (ytail+1) % y.size();
 
             // //PATH 2: LMS update
             // //compute the xf filtered signal before the update
-            float xf_val = fxlmsObj.filtered_x_sample(tail);
+            fxlmsObj.filtered_x_sample();
 
             // // //Measure the sound seen by the error mic (right beside the main user speaker)
             // std::vector<float> e_n = audioProcObj.readErrorSignal(); //reads chunk

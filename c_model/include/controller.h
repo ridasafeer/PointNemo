@@ -20,7 +20,11 @@ public:
     //Where FXLMS will be used
 
     //functions for interfacing withe audio_proc and the fxlms
-    std::vector<float> pushReferenceSignal();
+    std::vector<float> readReferenceSignal();
+
+    void pushReferenceSample(float refSigSample);
+
+    float computeAntinoiseSample(int i);
 
     void writeAntinoiseSample(float yn_val);
 
@@ -34,11 +38,5 @@ private:
     std::vector<float> &x;
     std::vector<float> &y;
     float errorSignal;
-    
-    int tail = -1; //current sample in system time, x(n = t) sample
-    //calibrate reference
-    int ytail = 0; //argargarg
-
-    //todo: refactor so these tails abide by the same logic
 
 };
