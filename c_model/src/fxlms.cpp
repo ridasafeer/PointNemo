@@ -29,15 +29,15 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
 //Convolution of filter coefficients with reference signal
 
 void FxLMS::push_reference_sample(float curr_sample) {
-        x_tail = (x_tail+1) % L; //move tail to sample's new slot
-        x[x_tail] = curr_sample;
-        printf("New x[n] sample: %.4f\t", curr_sample);
+    x_tail = (x_tail+1) % L; //move tail to sample's new slot
+    x[x_tail] = curr_sample;
+    printf("New x[n] sample: %.4f\t", curr_sample);
 }
 
 //online convolution: single-sample convolution with both circular buffers
 float FxLMS::output() {
     
-    ytail = (ytail+1) % y.size(); //move to next spot for current value to be placed in
+    y_tail = (y_tail+1) % y.size(); //move to next spot for current value to be placed in
     y[y_tail] = 0.0f; //reset that value to 0
 
     int index = x_tail;
@@ -56,13 +56,15 @@ float FxLMS::output() {
 //Convolution of reference signal with est second paath
 
 float FxLMS::filtered_x_sample() {
-        //std::cout << "FxLMS.cpp: filtered_x_sample()" << std::endl;
-        int index = x_tail; //current sample of the x[n] signal - TOD; should be internal to fxlms as well
+
+    xf_tail = (xf_tail+1) % L; //move tail to sample's new slot
+
+    int index = x_tail; //current sample of the x[n] signal - TOD; should be internal to fxlms as well
     for (int i = 0; i < L; i++) {
-        xn_filtered += shat[i] * x[index];
+        xf[xf_tail] += shat[i] * x[index];
         int index = (index - 1 + L) % L;
     }
-    return xn_filtered;
+    return xf[xf_tail];
 }
 
 //-----------------------------
