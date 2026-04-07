@@ -4,6 +4,7 @@
 #include "estimated_secondary_path.h"
 #include "audio_processing.h"
 #include <vector>
+#include <deque>
 
 #pragma once
 
@@ -38,5 +39,9 @@ private:
     std::vector<float> &x;
     std::vector<float> &y;
     float errorSignal;
+
+    // ===== ADD THESE =====
+    std::deque<std::vector<std::vector<float>>> xf_hist_blocks;
+    int delayBlocks = 2;
 
 };

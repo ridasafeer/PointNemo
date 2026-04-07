@@ -387,12 +387,14 @@ std::vector<float> AudioIO::readReferenceSignal() {
     if (rc < 0) {
         std::cout << "snd_pcm_readi error: " << snd_strerror(rc) << std::endl;
         return x;
-        }
+    }
+
+    int16_t* buf = reinterpret_cast<int16_t*>(handles[1]->buffer);
 
     // //we should only be allowed to read reference signal if the application buffer is full?
-    for (int i = 0; i < handles[1]->sParams.period_size; i++) {
-        x.push_back(handles[1]->buffer[i]); //i am dumb and i deserve to be shot
-        //printf("%x\t", handles[1]->buffer[i]);
+    for (int i = 0; i < rc; i++) {
+        x.push_back(static_cast<float>(buf[i])); //i am dumb and i deserve to be shot
+        printf("%d\t", buf[i]);
     }
 
     return x;
@@ -428,11 +430,14 @@ std::vector<float> AudioIO::readErrorSignal() {
         std::cerr << "readErrorSignal read failed: " << snd_strerror(rc) << std::endl;
         return e;
     }
+
+    int16_t* buf = reinterpret_cast<int16_t*>(handles[0]->buffer);
+
     //push the values read from the buffer into the reference signal buffer: rewrites
     // //we should only be allowed to read reference signal if the application buffer is full?
-    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        e.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
-        //printf("%x\t", handles[0]->buffer[i]);
+    for (int i = 0; i < rc; i++) {
+        e.push_back(static_cast<float>(buf[i])); //i am dumb and i deserve to be shot
+        printf("%d\t", buf[i]);
     }
 
     return e;

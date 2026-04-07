@@ -20,6 +20,8 @@ public:
     void updateShat();
 
     float output(); 
+    void update_aligned_sample(float e_n, const std::vector<float>& x_filt_hist);
+    std::vector<float> getFilteredReferenceHistory() const;
 
     std::vector<float>& getXbuf(); //controller reads new x(n) samples
     std::vector<float>& getYbuf(); //controller reads new y(n) samples

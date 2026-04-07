@@ -58,13 +58,15 @@ float FxLMS::output() {
 
 float FxLMS::filtered_x_sample() {
 
-    xf_tail = (xf_tail+1) % L; //move tail to sample's new slot
+    xf_tail = (xf_tail + 1) % L;
+    xf[xf_tail] = 0.0f;
 
-    int index = x_tail; //current sample of the x[n] signal - TOD; should be internal to fxlms as well
-    for (int i = 0; i < L; i++) {
+    int index = x_tail;
+    for (int i = 0; i < M; i++) {
         xf[xf_tail] += shat[i] * x[index];
-        int index = (index - 1 + L) % L;
+        index = (index - 1 + L) % L;
     }
+
     printf("Corresponding xf sample computed : %.4f\t", xf[xf_tail]);
     return xf[xf_tail];
 }
@@ -85,6 +87,25 @@ void FxLMS::update(float e_n){
 
     for (int i = 0; i < L; i++) {
         w[i] += mu_e * xf[i];  // standard FxLMS 
+    }
+}
+
+std::vector<float> FxLMS::getFilteredReferenceHistory() const {
+    std::vector<float> hist(L, 0.0f);
+
+    for (int k = 0; k < L; k++) {
+        int idx = (xf_tail - k + L) % L;
+        hist[k] = xf[idx];
+    }
+
+    return hist;
+}
+
+void FxLMS::update_aligned_sample(float e_n, const std::vector<float>& x_filt_hist) {
+    const float mu_e = mu * e_n;
+
+    for (int k = 0; k < L; k++) {
+        w[k] += mu_e * x_filt_hist[k];
     }
 }
 

@@ -8,6 +8,7 @@
 
 Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(L), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()) {
     std::cout << "inside controller constructor" << std::endl;
+    
 }
 
 std::vector<float> Controller::calibration(
@@ -115,40 +116,57 @@ float Controller::computeAntinoiseSample(int i) {
 
 void Controller::startLearningLoop() {
     
-    //Manages the entire control flow of the FxLMS algorithm, links input and output buffers, and identifies termination
-
-    //Mnagement of the batch gradient learning
     while (1) {
 
+        // ===== 1. Read reference chunk =====
         std::vector<float> refSigChunk = readReferenceSignal();
-        std::vector<float> antinoiseSigChunk;
-        int num_taps = fxlmsObj.getNumTaps();
+        std::cout << "\ninputBuffer size : " << refSigChunk.size() << std::endl;
 
-        for (int i = 0; i < refSigChunk.size(); i++) {
+        // ===== 2. Buffers for this block =====
+        std::vector<float> antinoiseBlock;
+        std::vector<std::vector<float>> xfHistBlock;
+
+        antinoiseBlock.reserve(refSigChunk.size());
+        xfHistBlock.reserve(refSigChunk.size());
+
+        // ===== 3. Process block sample-by-sample =====
+        for (int i = 0; i < (int)refSigChunk.size(); i++) {
 
             pushReferenceSample(refSigChunk[i]); //push new sample into the x buffer, which is used for the convolution and update
 
-            float yn_val = computeAntinoiseSample(i); //compute the current antinoise sample using the current w coeffs and x buffer
+            float yn = computeAntinoiseSample(i); //compute the current antinoise sample using the current w coeffs and x buffer
+            antinoiseBlock.push_back(yn);
 
-            writeAntinoiseSample(yn_val);
-
-            // //PATH 2: LMS update
-            // //compute the xf filtered signal before the update
+            // compute filtered reference
             fxlmsObj.filtered_x_sample();
 
-            // std::cout << "\ndone filtereed x samples " << x.size() << std::endl;
-
-            // // //Measure the sound seen by the error mic (right beside the main user speaker)
-            std::vector<float> e_n = audioProcObj.readErrorSignal(); //reads chunk
-
-            // // //weight update using the xf: will internally update in the fxlms w vector
-            // fxlmsObj.update(e_n);
-
+            // store FULL xf history for THIS sample (IMPORTANT)
+            xfHistBlock.push_back(fxlmsObj.getFilteredReferenceHistory());
         }
-        break; //for testing 1 chunk
-    }
-    
-    
-}
-    
 
+        // ===== 4. Write full antinoise block =====
+        audioProcObj.writeAntinoiseSignal(antinoiseBlock);
+
+        // ===== 5. Store xf history block =====
+        xf_hist_blocks.push_back(xfHistBlock);
+
+        // ===== 6. Read error block ONCE =====
+        std::vector<float> errSigChunk = audioProcObj.readErrorSignal();
+
+        // ===== 7. Apply delayed update =====
+        if ((int)xf_hist_blocks.size() > delayBlocks) {
+
+            std::vector<std::vector<float>> alignedXfBlock = xf_hist_blocks.front();
+            xf_hist_blocks.pop_front();
+
+            int N = std::min((int)errSigChunk.size(), (int)alignedXfBlock.size());
+
+            for (int i = 0; i < N; i++) {
+                fxlmsObj.update_aligned_sample(errSigChunk[i], alignedXfBlock[i]);
+            }
+        }
+
+        // ===== DEBUG: remove later =====
+        break; //run one chunk for testing
+    }
+}
