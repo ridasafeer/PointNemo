@@ -1,10 +1,14 @@
 CC := g++
-CFLAGS := -Wall -Wextra -std=c++17 -Iinclude -I./src/simpleini -I./src/matplotlib-cpp -I/usr/include/python3.13 -I/usr/include/aarch64-linux-gnu/python3.13 -lpython3.11 $(shell pkg-config --cflags alsa) 
-LDLIBS = $(shell pkg-config --libs alsa) #can also use
- 
-SRC_DIR := src
-BUILD_DIR := build
-TARGET := pointnemo
+CXXFLAGS := -Wall -Wextra -std=c++17 \
+	-Iinclude \
+	-I./src/simpleini \
+	-I./src/matplotlib-cpp \
+	$(shell python3-config --includes) \
+	-I$(shell python3 -c "import numpy; print(numpy.get_include())") \
+	$(shell pkg-config --cflags alsa)
+
+LDFLAGS := $(shell python3-config --embed --ldflags)
+LDLIBS := $(shell pkg-config --libs alsa)
 
 # -------- the final make file for the entire project
 
