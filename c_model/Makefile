@@ -1,6 +1,7 @@
 CC := g++
 CXXFLAGS := -Wall -Wextra -std=c++17 \
 	-Iinclude \
+	-Isrc \
 	-I./src/simpleini \
 	-I./src/matplotlib-cpp \
 	$(shell python3-config --includes) \
@@ -13,28 +14,6 @@ LDLIBS := $(shell pkg-config --libs alsa)
 SRC_DIR := src
 BUILD_DIR := build
 TARGET := pointnemo
-
-# -------- the final make file for the entire project
-
-# #define references to the obj files
-# SRCS := $(wildcard $(SRC_DIR)/*.cpp)
-# OBJS := $(SRCS:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
-
-# #create build dir
-# $(BUILD_DIR):
-# 	mkdir -p $(BUILD_DIR)
-
-# #compile step
-# $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-# 	$(CC) $(CFLAGS) -c $< -o $@
-
-# #linker step
-# $(TARGET): $(OBJS)
-# 	$(CC) $^ -o $@ $(LDLIBS)
-
-# #clean rule
-
-# -------- testing audio_processing make with main()
 
 all: $(TARGET)
 
@@ -63,7 +42,6 @@ build/fxlms.o: src/fxlms.cpp | $(BUILD_DIR)
 #create build dir
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
-
 
 #automates a loopback test with the voice.wav, outtputing to the micOutput.wav
 run: $(TARGET)
