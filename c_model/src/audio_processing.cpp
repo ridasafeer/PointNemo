@@ -87,10 +87,13 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
             handles[count]->sParams = hardwareConfig.sParams;
 
             //identify which device type (ref mic, speaker, error mic) and config pcmHandle attrs accordingly
-            if (currentDevice == "reference_mics" | currentDevice == "error_mics") {
+            if (std::string(currentDevice) == "reference_mics" ||
+                std::string(currentDevice) == "error_mics") {
                 handles[count]->direction = SND_PCM_STREAM_CAPTURE;
+                handles[count]->channels = 1;   // mics  mono
             } else {
                 handles[count]->direction = SND_PCM_STREAM_PLAYBACK;
+                handles[count]->channels = 2;   // speakers  stereo
             }
 
             handles[count]->channels = 2; //all are stereo
@@ -103,45 +106,102 @@ void AudioIO::parseHardwareConfig(const char* cfgFilePath) {
     hardwareConfig.numDevices = count;
 }
 
-//passing the pcmHandleList by reference to modify the real one and have this function as void
 void AudioIO::initHardware() {
-
     for (int i = 0; i < hardwareConfig.numDevices; i++) {
 
-        std::cout << i << std::endl;
-        snd_pcm_open(&handles[i]->handle, handles[i]->device_name, handles[i]->direction, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
+        std::cout << "Opening device [" << handles[i]->device_name << "] "
+                << (handles[i]->direction == SND_PCM_STREAM_CAPTURE ? "CAPTURE" : "PLAYBACK")
+                << " length=" << std::strlen(handles[i]->device_name)
+                << std::endl;
+
+        for (size_t j = 0; j < std::strlen(handles[i]->device_name); j++) {
+            std::cout << "char[" << j << "] = "
+                    << (int)(unsigned char)handles[i]->device_name[j]
+                    << std::endl;
+        }
+
+        int rc = snd_pcm_open(&handles[i]->handle,
+                            handles[i]->device_name,
+                            handles[i]->direction,
+                            0);
+
+        if (rc < 0) {
+            std::cerr << "snd_pcm_open failed for [" << handles[i]->device_name
+                      << "]: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
 
         std::cout << "alsa open()" << std::endl;
 
         streamParams currentHandleStreamParams = handles[i]->sParams;
-        
-        //allocate a default params struct on heap
+
         snd_pcm_hw_params_alloca(&handles[i]->params);
         std::cout << "alsa alloca()" << std::endl;
 
-        //set the hardware parameters
+        rc = snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
+        if (rc < 0) {
+            std::cerr << "snd_pcm_hw_params_any failed: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
 
-        // fill with default values
-        snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
-        std::cout << "alsa default params()" << std::endl;
-        
-        snd_pcm_hw_params_set_access(handles[i]->handle, handles[i]->params, SND_PCM_ACCESS_RW_INTERLEAVED); //tell alsa interleaved mode is being used
-        snd_pcm_hw_params_set_format(handles[i]->handle, handles[i]->params, SND_PCM_FORMAT_S16_LE);         //tell alsa each sample is 16 little indian
-        
-        //set mono
-        snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, 1);
+        rc = snd_pcm_hw_params_set_access(handles[i]->handle,
+                                          handles[i]->params,
+                                          SND_PCM_ACCESS_RW_INTERLEAVED);
+        if (rc < 0) {
+            std::cerr << "set_access failed: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
 
-        // set period size
-        snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
+        rc = snd_pcm_hw_params_set_format(handles[i]->handle,
+                                          handles[i]->params,
+                                          SND_PCM_FORMAT_S16_LE);
+        if (rc < 0) {
+            std::cerr << "set_format failed: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
 
-        // set sample rate (48000 Hz)
-        snd_pcm_hw_params_set_rate_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.rate, &handles[i]->dir);
-        
-        snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
+        // capture devices = mono, playback devices = stereo
+        unsigned int desired_channels =
+            (handles[i]->direction == SND_PCM_STREAM_PLAYBACK) ? 2 : 1;
 
-        //debug: what the pcm params are for this file at the end of this function
+        rc = snd_pcm_hw_params_set_channels(handles[i]->handle,
+                                            handles[i]->params,
+                                            desired_channels);
+        if (rc < 0) {
+            std::cerr << "set_channels failed for [" << handles[i]->device_name
+                      << "] with channels=" << desired_channels
+                      << ": " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
+
+        rc = snd_pcm_hw_params_set_period_size_near(handles[i]->handle,
+                                                    handles[i]->params,
+                                                    &currentHandleStreamParams.period_size,
+                                                    &handles[i]->dir);
+        if (rc < 0) {
+            std::cerr << "set_period_size_near failed: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
+
+        rc = snd_pcm_hw_params_set_rate_near(handles[i]->handle,
+                                             handles[i]->params,
+                                             &currentHandleStreamParams.rate,
+                                             &handles[i]->dir);
+        if (rc < 0) {
+            std::cerr << "set_rate_near failed: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
+
+        rc = snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
+        if (rc < 0) {
+            std::cerr << "snd_pcm_hw_params failed for [" << handles[i]->device_name
+                      << "]: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
+
         snd_pcm_uframes_t frames;
         unsigned int val;
+
         snd_pcm_hw_params_get_format(handles[i]->params, (snd_pcm_format_t*)&val);
         printf("%d : format\n", val);
 
@@ -149,46 +209,190 @@ void AudioIO::initHardware() {
         printf("%d : num channels\n", val);
 
         snd_pcm_hw_params_get_period_size(handles[i]->params, &frames, &handles[i]->dir);
-        printf("%d : num frames\n", frames);
+        printf("%ld : num frames\n", frames);
 
         snd_pcm_hw_params_get_periods(handles[i]->params, &val, &handles[i]->dir);
-        printf("%d frames : periods per buffer\n", val);
-        
+        printf("%u frames : periods per buffer\n", val);
+
         snd_pcm_hw_params_get_rate(handles[i]->params, &val, &handles[i]->dir);
-        printf("%d : sampling rate\n", val);
+        printf("%u : sampling rate\n", val);
 
         snd_pcm_hw_params_get_access(handles[i]->params, (snd_pcm_access_t*)&val);
-        printf("%d : interleaved or nah\n", val); //0 = interleaved
+        printf("%d : interleaved or nah\n", val);
 
-        snd_pcm_prepare(handles[i]->handle);
+        rc = snd_pcm_prepare(handles[i]->handle);
+        if (rc < 0) {
+            std::cerr << "snd_pcm_prepare failed: " << snd_strerror(rc) << std::endl;
+            exit(1);
+        }
 
         std::cout << "all device pcm interfaces init'd" << std::endl;
-
     }
-
 }
+
+// //passing the pcmHandleList by reference to modify the real one and have this function as void
+// void AudioIO::initHardware() {
+
+//     for (int i = 0; i < hardwareConfig.numDevices; i++) {
+
+//         std::cout << i << std::endl;
+//         snd_pcm_open(&handles[i]->handle, handles[i]->device_name, handles[i]->direction, 0); //KEY: hw01 is the mic adc on the vm audio input enabled linux machine
+
+//         std::cout << "alsa open()" << std::endl;
+
+//         streamParams currentHandleStreamParams = handles[i]->sParams;
+        
+//         //allocate a default params struct on heap
+//         snd_pcm_hw_params_alloca(&handles[i]->params);
+//         std::cout << "alsa alloca()" << std::endl;
+
+//         //set the hardware parameters
+
+//         // fill with default values
+//         snd_pcm_hw_params_any(handles[i]->handle, handles[i]->params);
+//         std::cout << "alsa default params()" << std::endl;
+        
+//         snd_pcm_hw_params_set_access(handles[i]->handle, handles[i]->params, SND_PCM_ACCESS_RW_INTERLEAVED); //tell alsa interleaved mode is being used
+//         snd_pcm_hw_params_set_format(handles[i]->handle, handles[i]->params, SND_PCM_FORMAT_S16_LE);         //tell alsa each sample is 16 little indian
+        
+//         //set mono
+//         //snd_pcm_hw_params_set_channels(handles[i]->handle, handles[i]->params, 1);
+//         int rc = snd_pcm_hw_params_set_channels(
+//             handles[i]->handle,
+//             handles[i]->params,
+//             handles[i]->channels
+//         );
+
+//         if (rc < 0) {
+//             std::cerr << "set_channels failed for [" << handles[i]->device_name
+//                     << "] with channels=" << handles[i]->channels
+//                     << ": " << snd_strerror(rc) << std::endl;
+//             exit(1);
+//         }
+
+//         // set period size
+//         snd_pcm_hw_params_set_period_size_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.period_size, &handles[i]->dir);
+
+//         // set sample rate (48000 Hz)
+//         snd_pcm_hw_params_set_rate_near(handles[i]->handle, handles[i]->params, &currentHandleStreamParams.rate, &handles[i]->dir);
+        
+//         snd_pcm_hw_params(handles[i]->handle, handles[i]->params);
+
+//         //debug: what the pcm params are for this file at the end of this function
+//         snd_pcm_uframes_t frames;
+//         unsigned int val;
+//         snd_pcm_hw_params_get_format(handles[i]->params, (snd_pcm_format_t*)&val);
+//         printf("%d : format\n", val);
+
+//         snd_pcm_hw_params_get_channels(handles[i]->params, &val);
+//         printf("%d : num channels\n", val);
+
+//         snd_pcm_hw_params_get_period_size(handles[i]->params, &frames, &handles[i]->dir);
+//         printf("%d : num frames\n", frames);
+
+//         snd_pcm_hw_params_get_periods(handles[i]->params, &val, &handles[i]->dir);
+//         printf("%d frames : periods per buffer\n", val);
+        
+//         snd_pcm_hw_params_get_rate(handles[i]->params, &val, &handles[i]->dir);
+//         printf("%d : sampling rate\n", val);
+
+//         snd_pcm_hw_params_get_access(handles[i]->params, (snd_pcm_access_t*)&val);
+//         printf("%d : interleaved or nah\n", val); //0 = interleaved
+
+//         snd_pcm_prepare(handles[i]->handle);
+
+//         std::cout << "all device pcm interfaces init'd" << std::endl;
+
+//     }
+// }
 
 
 //Designed for only 1 reference mic signal
 //TODO: how to identify whcih one is refernce mic or which reference mic to read from
+// std::vector<float> AudioIO::readReferenceSignal() {
+
+//     x.clear(); //reset this helper vector
+//     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
+//     std::cout << "AudioIO::readRefSignal() " << handles[0]->device_name << "\n" << std::endl;
+//     int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
+//     //push the values read from the buffer into the reference signal buffer: rewrites
+    
+//     //std::cout << snd_strerror(rc) << std::endl;  
+//     //COMMENTED THE ABOVE OUT BC POSITIVE RC VALUES MADE IT PRINT OUT "Unknown Error 256" so changed it so it prints it out only for rc < 0
+//     if (rc < 0) {
+//         std::cout << "snd_pcm_readi error: " << snd_strerror(rc) << std::endl;
+//         }
+
+//     // //we should only be allowed to read reference signal if the application buffer is full?
+//     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
+//         x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
+//         printf("%x\t", handles[0]->buffer[i]);
+//     }
+
+//     return x;
+// }
+
+// void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
+    
+//     //find handle of the anti-noise playback device
+
+//     //just to be nice, we should put these values into the actual designated buffer for the handle
+//     //std::copy();
+//     std::cout << "AudioIO::writeAntiSignal() " << handles[1]->device_name << "\n" << std::endl;
+//     //alsa write: frames written = number of 
+//     snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
+//     //error handling if needed
+//     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
+//         printf("%x\t", handles[0]->buffer[i]);
+//     }
+
+// }
+
+int AudioIO::closeInterface(pcmHandle_t* handle) {
+    return 0;
+}
+
+
+// std::vector<float> AudioIO::readErrorSignal() {
+    
+//     e.clear(); //reset this helper vector
+//     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
+//     std::cout << "AudioIO::readErrorSignal() " << handles[2]->device_name << "\n" << std::endl;
+//     int rc = snd_pcm_readi(handles[2]->handle, (void*)handles[2]->buffer, handles[2]->sParams.period_size); //read period_size num of frames for the current chunk
+//     if (rc < 0) {
+//         std::cerr << "readErrorSignal read failed: " << snd_strerror(rc) << std::endl;
+//         return e;
+//     }
+//     //push the values read from the buffer into the reference signal buffer: rewrites
+//     std::cout << snd_strerror(rc) << std::endl;
+//     // //we should only be allowed to read reference signal if the application buffer is full?
+//     for (int i = 0; i < handles[2]->sParams.period_size; i++) {
+//         e.push_back(handles[2]->buffer[i]); //i am dumb and i deserve to be shot
+//         printf("%x\t", handles[2]->buffer[i]);
+//     }
+
+//     return e;
+// }
+
 std::vector<float> AudioIO::readReferenceSignal() {
 
     x.clear(); //reset this helper vector
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << "AudioIO::readRefSignal() " << handles[0]->device_name << "\n" << std::endl;
-    int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
+    std::cout << "AudioIO::readRefSignal() " << handles[1]->device_name << "\n" << std::endl;
+    int rc = snd_pcm_readi(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size); //read period_size num of frames for the current chunk
     //push the values read from the buffer into the reference signal buffer: rewrites
     
     //std::cout << snd_strerror(rc) << std::endl;  
     //COMMENTED THE ABOVE OUT BC POSITIVE RC VALUES MADE IT PRINT OUT "Unknown Error 256" so changed it so it prints it out only for rc < 0
     if (rc < 0) {
         std::cout << "snd_pcm_readi error: " << snd_strerror(rc) << std::endl;
+        return x;
         }
 
     // //we should only be allowed to read reference signal if the application buffer is full?
-    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[0]->buffer[i]);
+    for (int i = 0; i < handles[1]->sParams.period_size; i++) {
+        x.push_back(handles[1]->buffer[i]); //i am dumb and i deserve to be shot
+        //printf("%x\t", handles[1]->buffer[i]);
     }
 
     return x;
@@ -200,33 +404,35 @@ void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
 
     //just to be nice, we should put these values into the actual designated buffer for the handle
     //std::copy();
-    std::cout << "AudioIO::writeAntiSignal() " << handles[1]->device_name << "\n" << std::endl;
+    std::cout << "AudioIO::writeAntiSignal() " << handles[2]->device_name << "\n" << std::endl;
     //alsa write: frames written = number of 
-    snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
+    int rc = snd_pcm_writei(handles[2]->handle, (void*)handles[2]->buffer, handles[2]->sParams.period_size);
     //error handling if needed
-    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        printf("%x\t", handles[0]->buffer[i]);
+    if (rc < 0) {
+        std::cout << "snd_pcm_writei error: " << snd_strerror(rc) << std::endl;
+        return;
     }
+    // for (int i = 0; i < handles[2]->sParams.period_size; i++) {
+    //     //printf("%x\t", handles[2]->buffer[i]);
+    // }
 
 }
-
-int AudioIO::closeInterface(pcmHandle_t* handle) {
-    return 0;
-}
-
 
 std::vector<float> AudioIO::readErrorSignal() {
     
     e.clear(); //reset this helper vector
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << "AudioIO::readRefSignal() " << handles[2]->device_name << "\n" << std::endl;
-    int rc = snd_pcm_readi(handles[2]->handle, (void*)handles[2]->buffer, handles[2]->sParams.period_size); //read period_size num of frames for the current chunk
+    std::cout << "AudioIO::readErrorSignal() " << handles[0]->device_name << "\n" << std::endl;
+    int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
+    if (rc < 0) {
+        std::cerr << "readErrorSignal read failed: " << snd_strerror(rc) << std::endl;
+        return e;
+    }
     //push the values read from the buffer into the reference signal buffer: rewrites
-    std::cout << snd_strerror(rc) << std::endl;
     // //we should only be allowed to read reference signal if the application buffer is full?
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        e.push_back(handles[2]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[2]->buffer[i]);
+        e.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
+        //printf("%x\t", handles[0]->buffer[i]);
     }
 
     return e;

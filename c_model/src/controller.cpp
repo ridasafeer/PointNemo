@@ -136,8 +136,10 @@ void Controller::startLearningLoop() {
             // //compute the xf filtered signal before the update
             fxlmsObj.filtered_x_sample();
 
+            // std::cout << "\ndone filtereed x samples " << x.size() << std::endl;
+
             // // //Measure the sound seen by the error mic (right beside the main user speaker)
-            // std::vector<float> e_n = audioProcObj.readErrorSignal(); //reads chunk
+            std::vector<float> e_n = audioProcObj.readErrorSignal(); //reads chunk
 
             // // //weight update using the xf: will internally update in the fxlms w vector
             // fxlmsObj.update(e_n);
