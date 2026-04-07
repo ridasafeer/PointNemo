@@ -4,7 +4,7 @@
 //Learning loop ends here as well
 
 #include "controller.h"
-#include "signal_testing.h"
+//include "signal_testing.h"
 #include <stdexcept>
 
 Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(L), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()), signalTester(48000.0f) {
