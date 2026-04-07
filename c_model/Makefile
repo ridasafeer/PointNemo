@@ -55,7 +55,7 @@ $(BUILD_DIR):
 
 
 #automates a loopback test with the voice.wav, outtputing to the micOutput.wav
-run: pointnemo
+run: $(TARGET)
 	./pointnemo
 
 clean:
