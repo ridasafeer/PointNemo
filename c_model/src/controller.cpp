@@ -227,6 +227,6 @@ void Controller::startLearningLoop() {
 
         analysisCounter++;
 
-        break; // run one chunk for testing
+        //break; // run one chunk for testing
     }
 }
