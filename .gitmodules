@@ -1,3 +1,6 @@
 [submodule "c_model/src/simpleini"]
 	path = c_model/src/simpleini
 	url = https://github.com/brofield/simpleini.git
+[submodule "c_model/src/matplotlib-cpp"]
+	path = c_model/src/matplotlib-cpp
+	url = https://github.com/lava/matplotlib-cpp.git
