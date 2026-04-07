@@ -28,7 +28,7 @@ public:
 
     float computeAntinoiseSample(int i);
 
-    void writeAntinoiseSample(float yn_val);
+    void writeAntinoiseSample(std::vector<float> antinoiseBlock);
 
 
 private:
