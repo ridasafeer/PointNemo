@@ -392,7 +392,7 @@ std::vector<float> AudioIO::readReferenceSignal() {
     // //we should only be allowed to read reference signal if the application buffer is full?
     for (int i = 0; i < handles[1]->sParams.period_size; i++) {
         x.push_back(handles[1]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[1]->buffer[i]);
+        //printf("%x\t", handles[1]->buffer[i]);
     }
 
     return x;
@@ -412,9 +412,9 @@ void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
         std::cout << "snd_pcm_writei error: " << snd_strerror(rc) << std::endl;
         return;
     }
-    for (int i = 0; i < handles[2]->sParams.period_size; i++) {
-        printf("%x\t", handles[2]->buffer[i]);
-    }
+    // for (int i = 0; i < handles[2]->sParams.period_size; i++) {
+    //     //printf("%x\t", handles[2]->buffer[i]);
+    // }
 
 }
 
@@ -432,7 +432,7 @@ std::vector<float> AudioIO::readErrorSignal() {
     // //we should only be allowed to read reference signal if the application buffer is full?
     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
         e.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[0]->buffer[i]);
+        //printf("%x\t", handles[0]->buffer[i]);
     }
 
     return e;
