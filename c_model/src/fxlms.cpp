@@ -3,6 +3,7 @@
 #include "fxlms.h"
 #include <stdio.h>
 #include <iostream>
+#include <complex>
 
 // Constructor
 FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
