@@ -9,6 +9,10 @@ CXXFLAGS := -Wall -Wextra -std=c++17 \
 
 LDFLAGS := $(shell python3-config --embed --ldflags)
 LDLIBS := $(shell pkg-config --libs alsa)
+ 
+SRC_DIR := src
+BUILD_DIR := build
+TARGET := pointnemo
 
 # -------- the final make file for the entire project
 
