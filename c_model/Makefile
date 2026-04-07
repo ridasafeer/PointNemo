@@ -49,6 +49,9 @@ build/dsp.o: src/dsp.cpp | $(BUILD_DIR)
 build/fxlms.o: src/fxlms.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+build/signal_testing.o: src/signal_testing.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 #create build dir
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
