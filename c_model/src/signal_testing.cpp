@@ -321,7 +321,6 @@ void SignalTesting::plotErrorSurface(
     }
 
     plt::figure();
-    plt::imshow(Z);
     plt::title("Error Surface (w0 vs w1)");
     plt::colorbar();
     plt::show();
