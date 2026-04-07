@@ -309,24 +309,90 @@ void AudioIO::initHardware() {
 
 //Designed for only 1 reference mic signal
 //TODO: how to identify whcih one is refernce mic or which reference mic to read from
+// std::vector<float> AudioIO::readReferenceSignal() {
+
+//     x.clear(); //reset this helper vector
+//     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
+//     std::cout << "AudioIO::readRefSignal() " << handles[0]->device_name << "\n" << std::endl;
+//     int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
+//     //push the values read from the buffer into the reference signal buffer: rewrites
+    
+//     //std::cout << snd_strerror(rc) << std::endl;  
+//     //COMMENTED THE ABOVE OUT BC POSITIVE RC VALUES MADE IT PRINT OUT "Unknown Error 256" so changed it so it prints it out only for rc < 0
+//     if (rc < 0) {
+//         std::cout << "snd_pcm_readi error: " << snd_strerror(rc) << std::endl;
+//         }
+
+//     // //we should only be allowed to read reference signal if the application buffer is full?
+//     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
+//         x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
+//         printf("%x\t", handles[0]->buffer[i]);
+//     }
+
+//     return x;
+// }
+
+// void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
+    
+//     //find handle of the anti-noise playback device
+
+//     //just to be nice, we should put these values into the actual designated buffer for the handle
+//     //std::copy();
+//     std::cout << "AudioIO::writeAntiSignal() " << handles[1]->device_name << "\n" << std::endl;
+//     //alsa write: frames written = number of 
+//     snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
+//     //error handling if needed
+//     for (int i = 0; i < handles[0]->sParams.period_size; i++) {
+//         printf("%x\t", handles[0]->buffer[i]);
+//     }
+
+// }
+
+int AudioIO::closeInterface(pcmHandle_t* handle) {
+    return 0;
+}
+
+
+// std::vector<float> AudioIO::readErrorSignal() {
+    
+//     e.clear(); //reset this helper vector
+//     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
+//     std::cout << "AudioIO::readErrorSignal() " << handles[2]->device_name << "\n" << std::endl;
+//     int rc = snd_pcm_readi(handles[2]->handle, (void*)handles[2]->buffer, handles[2]->sParams.period_size); //read period_size num of frames for the current chunk
+//     if (rc < 0) {
+//         std::cerr << "readErrorSignal read failed: " << snd_strerror(rc) << std::endl;
+//         return e;
+//     }
+//     //push the values read from the buffer into the reference signal buffer: rewrites
+//     std::cout << snd_strerror(rc) << std::endl;
+//     // //we should only be allowed to read reference signal if the application buffer is full?
+//     for (int i = 0; i < handles[2]->sParams.period_size; i++) {
+//         e.push_back(handles[2]->buffer[i]); //i am dumb and i deserve to be shot
+//         printf("%x\t", handles[2]->buffer[i]);
+//     }
+
+//     return e;
+// }
+
 std::vector<float> AudioIO::readReferenceSignal() {
 
     x.clear(); //reset this helper vector
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << "AudioIO::readRefSignal() " << handles[0]->device_name << "\n" << std::endl;
-    int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
+    std::cout << "AudioIO::readRefSignal() " << handles[1]->device_name << "\n" << std::endl;
+    int rc = snd_pcm_readi(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size); //read period_size num of frames for the current chunk
     //push the values read from the buffer into the reference signal buffer: rewrites
     
     //std::cout << snd_strerror(rc) << std::endl;  
     //COMMENTED THE ABOVE OUT BC POSITIVE RC VALUES MADE IT PRINT OUT "Unknown Error 256" so changed it so it prints it out only for rc < 0
     if (rc < 0) {
         std::cout << "snd_pcm_readi error: " << snd_strerror(rc) << std::endl;
+        return x;
         }
 
     // //we should only be allowed to read reference signal if the application buffer is full?
-    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        x.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[0]->buffer[i]);
+    for (int i = 0; i < handles[1]->sParams.period_size; i++) {
+        x.push_back(handles[1]->buffer[i]); //i am dumb and i deserve to be shot
+        printf("%x\t", handles[1]->buffer[i]);
     }
 
     return x;
@@ -338,37 +404,35 @@ void AudioIO::writeAntinoiseSignal(std::vector<float> outputBuffer) {
 
     //just to be nice, we should put these values into the actual designated buffer for the handle
     //std::copy();
-    std::cout << "AudioIO::writeAntiSignal() " << handles[1]->device_name << "\n" << std::endl;
+    std::cout << "AudioIO::writeAntiSignal() " << handles[2]->device_name << "\n" << std::endl;
     //alsa write: frames written = number of 
-    snd_pcm_writei(handles[1]->handle, (void*)handles[1]->buffer, handles[1]->sParams.period_size);
+    int rc = snd_pcm_writei(handles[2]->handle, (void*)handles[2]->buffer, handles[2]->sParams.period_size);
     //error handling if needed
-    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
-        printf("%x\t", handles[0]->buffer[i]);
+    if (rc < 0) {
+        std::cout << "snd_pcm_writei error: " << snd_strerror(rc) << std::endl;
+        return;
+    }
+    for (int i = 0; i < handles[2]->sParams.period_size; i++) {
+        printf("%x\t", handles[2]->buffer[i]);
     }
 
 }
-
-int AudioIO::closeInterface(pcmHandle_t* handle) {
-    return 0;
-}
-
 
 std::vector<float> AudioIO::readErrorSignal() {
     
     e.clear(); //reset this helper vector
     //blocking read: reads until buffer of size periodSize is full, then returns number of frames read (should be periodSize unless error)
-    std::cout << "AudioIO::readErrorSignal() " << handles[2]->device_name << "\n" << std::endl;
-    int rc = snd_pcm_readi(handles[2]->handle, (void*)handles[2]->buffer, handles[2]->sParams.period_size); //read period_size num of frames for the current chunk
+    std::cout << "AudioIO::readErrorSignal() " << handles[0]->device_name << "\n" << std::endl;
+    int rc = snd_pcm_readi(handles[0]->handle, (void*)handles[0]->buffer, handles[0]->sParams.period_size); //read period_size num of frames for the current chunk
     if (rc < 0) {
         std::cerr << "readErrorSignal read failed: " << snd_strerror(rc) << std::endl;
         return e;
     }
     //push the values read from the buffer into the reference signal buffer: rewrites
-    std::cout << snd_strerror(rc) << std::endl;
     // //we should only be allowed to read reference signal if the application buffer is full?
-    for (int i = 0; i < handles[2]->sParams.period_size; i++) {
-        e.push_back(handles[2]->buffer[i]); //i am dumb and i deserve to be shot
-        printf("%x\t", handles[2]->buffer[i]);
+    for (int i = 0; i < handles[0]->sParams.period_size; i++) {
+        e.push_back(handles[0]->buffer[i]); //i am dumb and i deserve to be shot
+        printf("%x\t", handles[0]->buffer[i]);
     }
 
     return e;
