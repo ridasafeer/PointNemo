@@ -9,7 +9,7 @@ CXXFLAGS := -Wall -Wextra -std=c++17 \
 
 LDFLAGS := $(shell python3-config --embed --ldflags)
 LDLIBS := $(shell pkg-config --libs alsa)
- 
+
 SRC_DIR := src
 BUILD_DIR := build
 TARGET := pointnemo
@@ -17,32 +17,29 @@ TARGET := pointnemo
 all: $(TARGET)
 
 $(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/audio_processing.o $(BUILD_DIR)/signal_testing.o $(BUILD_DIR)/controller.o $(BUILD_DIR)/dsp.o $(BUILD_DIR)/fxlms.o
-	$(CC) $^ -o $@ $(LDLIBS)
+	$(CC) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
-# compile rule
 build/main.o: src/main.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@ 
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 build/audio_processing.o: src/audio_processing.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 build/signal_testing.o: src/signal_testing.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 build/controller.o: src/controller.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 build/dsp.o: src/dsp.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 build/fxlms.o: src/fxlms.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
-#create build dir
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-#automates a loopback test with the voice.wav, outtputing to the micOutput.wav
 run: $(TARGET)
 	./pointnemo
 
