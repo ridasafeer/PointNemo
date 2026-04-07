@@ -162,8 +162,8 @@ void Controller::startLearningLoop() {
                 signalTester.plotSpectrum(antiSpec, "Antinoise Block Spectrum");
 
                 // current adaptive FIR response: gonna compare the reference and antinoise in the laplace dom to show mag and phase shift between ref to antinoise
-                auto filtResp = signalTester.computeFIRFrequencyResponse(fxlmsObj.getWeights());
-                signalTester.plotTransfer(filtResp, "Adaptive Filter Frequency Response");
+                //auto filtResp = signalTester.computeFIRFrequencyResponse(fxlmsObj.getWeights());
+                //signalTester.plotTransfer(filtResp, "Adaptive Filter Frequency Response");
             }
             catch (const std::exception& e) {
                 std::cerr << "[SignalTesting] Pre-write analysis failed: " << e.what() << std::endl;
