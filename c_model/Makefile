@@ -1,6 +1,7 @@
 CC := g++
 CXXFLAGS := -Wall -Wextra -std=c++17 \
 	-Iinclude \
+	-I./include \
 	-Isrc \
 	-I./src/simpleini \
 	-I./src/matplotlib-cpp \
