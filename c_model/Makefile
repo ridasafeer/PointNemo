@@ -1,5 +1,5 @@
 CC := g++
-CFLAGS := -Wall -Wextra -std=c++17 -Iinclude -I./src/simpleini -I./src/matplotlib-cpp -lpython3.11 $(shell pkg-config --cflags alsa) 
+CFLAGS := -Wall -Wextra -std=c++17 -Iinclude -I./src/simpleini -I./src/matplotlib-cpp -I/usr/include/python3.13 -I/usr/include/aarch64-linux-gnu/python3.13 -lpython3.11 $(shell pkg-config --cflags alsa) 
 LDLIBS = $(shell pkg-config --libs alsa) #can also use
  
 SRC_DIR := src
