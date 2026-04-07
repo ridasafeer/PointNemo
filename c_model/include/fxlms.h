@@ -27,6 +27,8 @@ public:
     std::vector<float>& getYbuf(); //controller reads new y(n) samples
     int getNumTaps();
 
+    const std::vector<float>& getWeights() const;
+
 private:
     int L;                  // Number of Taps (Adaptive filter length)
     int M;                  // Secondary path length

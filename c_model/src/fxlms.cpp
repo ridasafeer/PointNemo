@@ -22,6 +22,10 @@ FxLMS::FxLMS(const std::vector<float>& shat, int L, float mu)
     std::cout << "FxLMS constructor" << std::endl;
 }
 
+const std::vector<float>& FxLMS::getWeights() const {
+    return w;
+}
+
 //-----------------------------
 // output
 // Computes y(n) = w^T . x_circular

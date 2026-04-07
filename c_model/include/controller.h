@@ -3,6 +3,7 @@
 #include "dsp.h"
 #include "estimated_secondary_path.h"
 #include "audio_processing.h"
+#include "signal_testing.h"
 #include <vector>
 #include <deque>
 
@@ -39,6 +40,7 @@ private:
     std::vector<float> &x;
     std::vector<float> &y;
     float errorSignal;
+    SignalTesting signalTester;
 
     // ===== ADD THESE =====
     std::deque<std::vector<std::vector<float>>> xf_hist_blocks;

@@ -4,9 +4,10 @@
 //Learning loop ends here as well
 
 #include "controller.h"
+#include "signal_testing.h"
 #include <stdexcept>
 
-Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(L), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()) {
+Controller::Controller(std::vector<float> shat, int L, float mu) : dspObj(L), shat(shat), fxlmsObj(shat, L, mu), audioProcObj(), x(fxlmsObj.getXbuf()), y(fxlmsObj.getYbuf()), signalTester(48000.0f) {
     std::cout << "inside controller constructor" << std::endl;
     
 }
@@ -89,16 +90,9 @@ std::vector<float> Controller::calibration(
     return inputBuffer;
 }
 
-void Controller::writeAntinoiseSample(float yn_val) {
+void Controller::writeAntinoiseSample(std::vector<float> antinoiseBlock) {
 
-    //use internal y buffer and pass to audioProc only when chunk is ready
-    static std::vector<float> y_alsa_temp; //TODO: static quick fix, change this to not use static pls
-    y_alsa_temp.push_back(yn_val);
-    std::cout << "Size of antinoise buff" << y_alsa_temp.size() << std::endl;
-    if (y_alsa_temp.size() >= 256) { //TODO: dont hardcode this
-        audioProcObj.writeAntinoiseSignal(y_alsa_temp); //could pass by reference? not needed here because its all blocking single threaded flow
-        y_alsa_temp.clear();
-    }
+    audioProcObj.writeAntinoiseSignal(antinoiseBlock); 
 
 }
 
@@ -115,36 +109,68 @@ float Controller::computeAntinoiseSample(int i) {
 }
 
 void Controller::startLearningLoop() {
-    
+
+    int analysisCounter = 0;
+
     while (1) {
 
-        // ===== 1. Read reference chunk =====
+        // reading ref chunk
         std::vector<float> refSigChunk = readReferenceSignal();
         std::cout << "\ninputBuffer size : " << refSigChunk.size() << std::endl;
 
-        // ===== 2. Buffers for this block =====
+        // some useful buffers
         std::vector<float> antinoiseBlock;
         std::vector<std::vector<float>> xfHistBlock;
 
         antinoiseBlock.reserve(refSigChunk.size());
         xfHistBlock.reserve(refSigChunk.size());
 
-        // ===== 3. Process block sample-by-sample =====
+        // sample by sample processing of input chunk
         for (int i = 0; i < (int)refSigChunk.size(); i++) {
 
-            pushReferenceSample(refSigChunk[i]); //push new sample into the x buffer, which is used for the convolution and update
+            pushReferenceSample(refSigChunk[i]);
 
-            float yn = computeAntinoiseSample(i); //compute the current antinoise sample using the current w coeffs and x buffer
+            float yn = computeAntinoiseSample(i);
             antinoiseBlock.push_back(yn);
 
-            // compute filtered reference
+            // compute filtered reference sample
             fxlmsObj.filtered_x_sample();
 
-            // store FULL xf history for THIS sample (IMPORTANT)
+            // store FULL xf history for THIS sample
             xfHistBlock.push_back(fxlmsObj.getFilteredReferenceHistory());
         }
 
-        // ===== 4. Write full antinoise block =====
+        if (analysisCounter % 10 == 0) {
+            try {
+                std::cout << "\n[SignalTesting] Reference block stats:"
+                          << " mean=" << signalTester.computeMean(refSigChunk)
+                          << " rms="  << signalTester.computeRMS(refSigChunk)
+                          << " peak=" << signalTester.computePeak(refSigChunk)
+                          << std::endl;
+
+                std::cout << "[SignalTesting] Antinoise block stats:"
+                          << " mean=" << signalTester.computeMean(antinoiseBlock)
+                          << " rms="  << signalTester.computeRMS(antinoiseBlock)
+                          << " peak=" << signalTester.computePeak(antinoiseBlock)
+                          << std::endl;
+
+                // frequency responses
+                auto refSpec = signalTester.computeSpectrum(refSigChunk, true);
+                signalTester.plotSpectrum(refSpec, "Reference Block Spectrum");
+
+                auto antiSpec = signalTester.computeSpectrum(antinoiseBlock, true);
+                signalTester.plotSpectrum(antiSpec, "Antinoise Block Spectrum");
+
+                // current adaptive FIR response: gonna compare the reference and antinoise in the laplace dom to show mag and phase shift between ref to antinoise
+                auto filtResp = signalTester.computeFIRFrequencyResponse(fxlmsObj.getWeights());
+                signalTester.plotTransfer(filtResp, "Adaptive Filter Frequency Response");
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[SignalTesting] Pre-write analysis failed: " << e.what() << std::endl;
+            }
+        }
+
+        // after all antinoise samples pushed, push full antinoise block
         audioProcObj.writeAntinoiseSignal(antinoiseBlock);
 
         // ===== 5. Store xf history block =====
@@ -153,7 +179,40 @@ void Controller::startLearningLoop() {
         // ===== 6. Read error block ONCE =====
         std::vector<float> errSigChunk = audioProcObj.readErrorSignal();
 
-        // ===== 7. Apply delayed update =====
+        // ===== 6A. Error-side testing =====
+        if (analysisCounter % 10 == 0) {
+            try {
+                std::cout << "[SignalTesting] Error block stats:"
+                          << " mean=" << signalTester.computeMean(errSigChunk)
+                          << " rms="  << signalTester.computeRMS(errSigChunk)
+                          << " peak=" << signalTester.computePeak(errSigChunk)
+                          << std::endl;
+
+                // 4. Error spectrum
+                auto errSpec = signalTester.computeSpectrum(errSigChunk, true);
+                signalTester.plotSpectrum(errSpec, "Error Block Spectrum");
+
+                // 5. Coherence between current reference block and current error block
+                // Note: for true physical alignment this is approximate unless the delayBlocks relationship
+                // is accounted for perfectly, but still useful for early debugging.
+                if (refSigChunk.size() == errSigChunk.size()) {
+                    auto coh = signalTester.estimateCoherence(refSigChunk, errSigChunk, true);
+                    signalTester.plotCoherence(coh, "Reference-to-Error Coherence");
+                }
+
+                // 6. Measured transfer from antinoise output block -> error block
+                if (antinoiseBlock.size() == errSigChunk.size()) {
+                    auto outToErr = signalTester.estimateTransferFunction(
+                        antinoiseBlock, errSigChunk, true);
+                    signalTester.plotTransfer(outToErr, "Output-to-Error Transfer Function");
+                }
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[SignalTesting] Error-side analysis failed: " << e.what() << std::endl;
+            }
+        }
+
+        // delayed update: pop oldest xf block, and use that with the current error block to do the FxLMS update for each sample
         if ((int)xf_hist_blocks.size() > delayBlocks) {
 
             std::vector<std::vector<float>> alignedXfBlock = xf_hist_blocks.front();
@@ -166,7 +225,8 @@ void Controller::startLearningLoop() {
             }
         }
 
-        // ===== DEBUG: remove later =====
-        break; //run one chunk for testing
+        analysisCounter++;
+
+        break; // run one chunk for testing
     }
 }
